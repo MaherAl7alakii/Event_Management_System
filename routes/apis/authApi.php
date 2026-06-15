@@ -14,16 +14,20 @@ Route::post('/refresh', [AuthController::class, 'refresh']);
 
 
 
-Route::post('/send-otp', [AuthController::class, 'sendOtp']);
-Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
-
-
-Route::post('/forgot-password',[AuthController::class, 'forgotPassword']);
-Route::post('/reset-password',[AuthController::class, 'resetPassword']);
-Route::post('/send-Forgot-PasswordOtp', [AuthController::class, 'sendForgotPasswordOtp']);
-
 
 Route::middleware('auth:api')->group(function () {
+  
+    Route::post('/email/verify/send-otp',[AuthController::class, 'sendEmailVerificationOtp'])->name('email.verify.send-otp');
+    Route::post('/email/verify',[AuthController::class, 'verifyEmail'])->name('email.verify');
+
+
+Route::post('/forgot-password/send-otp',[AuthController::class, 'sendForgotPasswordOtp'])->name('password.forgot.send-otp');
+Route::post('/forgot-password/verify-otp',[AuthController::class, 'verifyForgotPasswordOtp'])->name('password.forgot.verify-otp');
+Route::post('/reset-password',[AuthController::class, 'resetPassword'])->name('password.reset');
+
+Route::post('/otp/resend',[AuthController::class, 'resendOtp'])->name('otp.resend');
+
+
+
     Route::post('/logout', [AuthController::class, 'logout']);
 });
-

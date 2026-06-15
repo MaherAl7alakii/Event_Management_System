@@ -14,8 +14,7 @@ class ResetPasswordRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'email', 'exists:users,email'],
-            'otp' => ['required', 'string', 'digits:' . config('otp.length', 6)],
+            'email' => ['sometimes', 'email', 'exists:users,email'],
             'password' => ['required', 'confirmed', 'min:8'],
         ];
     }

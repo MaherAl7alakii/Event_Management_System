@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\UnauthorizedException;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Cache;
 class AuthService
 {
     protected OtpService $otpService;
@@ -43,7 +44,7 @@ class AuthService
         throw new \Exception('Registration failed: ' . $e->getMessage());
     }
     try {
-        $this->sendOtp($user->email);
+        $this->sendOtp($user->email, 'email_verify');
     } catch (\Exception $e) {
     }
     $tokenRequest = Request::create('/oauth/token', 'POST', [ 
@@ -137,44 +138,8 @@ class AuthService
         auth()->user()->token()->revoke();
     }
 
-    /** Generate and send OTP to the user's email.*/
-    public function sendOtp(string $email): void
-    {
-        $user = User::where('email', $email)->first();
-        if (!$user) {
-            throw new \Exception('User not found.');
-        }
-
-        if ($user->email_verified_at) {
-            throw new \Exception('Email already verified.');
-        }
-
-        $otp = $this->otpService->generateOtp($email);
-        Mail::to($email)->send(new OtpMail($otp));
-    }
-
-    /* Verify the OTP and mark email as verified if successful.*/
-    public function verifyOtp(string $email, string $otp): bool
-    {
-        $user = User::where('email', $email)->first();
-        if (!$user) {
-            throw new \Exception('User not found.');
-        }
-
-        if ($user->email_verified_at) {
-            throw new \Exception('Email already verified.');
-        }
-
-        if ($this->otpService->verifyOtp($email, $otp)) {
-            $user->email_verified_at = now();
-            $user->save();
-            return true;
-        }
-
-        throw new \Exception('Invalid OTP or maximum attempts reached. Remaining attempts: ' . $this->otpService->getRemainingAttempts($email));
-    }
-
-    public function forgotPassword(string $email): void
+   
+    public function sendOtp(string $email, string $type): void
 {
     $user = User::where('email', $email)->first();
 
@@ -182,43 +147,68 @@ class AuthService
         throw new \Exception('User not found.');
     }
 
-    $otp = $this->otpService->generateOtp($email);
+    if ($type === 'email_verify' && $user->email_verified_at) {
+        throw new \Exception('Email already verified.');
+    }
+
+    $otp = $this->otpService->generateOtp($email, $type);
 
     Mail::to($email)->send(new OtpMail($otp));
-    }
-
-    public function resetPassword(string $email,string $otp,string $newPassword): bool 
+}
+    
+   public function verifyOtp(string $email, string $type, string $otp): bool
 {
-
     $user = User::where('email', $email)->first();
 
     if (!$user) {
         throw new \Exception('User not found.');
     }
 
-    if (!$this->otpService->verifyOtp($email, $otp)) {
-        throw new \Exception(
-            'Invalid OTP or maximum attempts reached.'
-        );
+    if ($type === 'email_verify' && $user->email_verified_at) {
+        throw new \Exception('Email already verified.');
+    }
+
+    if ($this->otpService->verifyOtp($email, $type, $otp)) {
+        if ($type === 'email_verify') {
+            $user->email_verified_at = now();
+            $user->save();
+        }
+
+        if ($type === 'password_reset') {
+            
+           Cache::put("password_reset_verified:{$email}", true, now()->addMinutes(15));
+        }
+        return true;
+    }
+
+    throw new \Exception('Invalid OTP');
+}
+
+   public function resetPassword(string $email, string $newPassword): bool
+{
+    $user = User::where('email', $email)->first();
+
+    if (!$user) {
+        throw new \Exception('User not found.');
+    }
+
+   
+    $isVerified = Cache::get("password_reset_verified:{$email}");
+
+    if (!$isVerified) {
+        throw new \Exception('Please verify your OTP first.');
     }
 
     $user->update([
         'password' => Hash::make($newPassword)
     ]);
 
+  
+    Cache::forget("password_reset_verified:{$email}");
+
     return true;
-    }
-
-public function sendForgotPasswordOtp(string $email): void
-{
-    $user = User::where('email', $email)->first();
-
-    if (!$user) {
-        throw new \Exception('User not found.');
-    }
-
-    $otp = $this->otpService->generateOtp($email);
-
-    Mail::to($email)->send(new OtpMail($otp));
 }
+
+
+
 }

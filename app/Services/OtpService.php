@@ -1,111 +1,148 @@
-<?php 
+<?php
 
 namespace App\Services;
 
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Str;
 
 class OtpService
 {
     protected int $otpLength = 6;
     protected int $otpExpiryMinutes = 5;
     protected int $maxAttempts = 5;
-    protected int $rateLimitSeconds = 60; 
+    protected int $rateLimitSeconds = 60;
 
-    /**
-     * Generate a new OTP and store it in Redis.
-     * Invalidates any previous OTPs for the user.
-     */
-    public function generateOtp(string $email): string
+    /*
+    |------------------------------------------------------------
+    | Generate OTP
+    |------------------------------------------------------------
+    | type = email_verify | password_reset
+    */
+    public function generateOtp(string $email, string $type): string
     {
-        $this->checkRateLimit($email);
+        $this->checkRateLimit($email, $type);
 
-        Cache::forget($this->getOtpKey($email));
-        Cache::forget($this->getAttemptsKey($email));
+        Cache::forget($this->getOtpKey($email, $type));
+        Cache::forget($this->getAttemptsKey($email, $type));
 
         $otp = $this->generateRandomOtp();
 
-        Cache::put($this->getOtpKey($email), $otp, now()->addMinutes($this->otpExpiryMinutes));
+        Cache::put(
+            $this->getOtpKey($email, $type),
+            $otp,
+            now()->addMinutes($this->otpExpiryMinutes)
+        );
 
         return $otp;
     }
 
-    /** Verify the given OTP against the stored one.*/
-    public function verifyOtp(string $email, string $otp): bool
+    /*
+    |------------------------------------------------------------
+    | Verify OTP
+    |------------------------------------------------------------
+    */
+    public function verifyOtp(string $email, string $type, string $otp): bool
     {
-        $storedOtp = Cache::get($this->getOtpKey($email));
+        $storedOtp = Cache::get($this->getOtpKey($email, $type));
 
         if (!$storedOtp || $storedOtp !== $otp) {
-            $this->incrementAttempts($email);
+            $this->incrementAttempts($email, $type);
             return false;
         }
-        Cache::forget($this->getOtpKey($email));
-        Cache::forget($this->getAttemptsKey($email));
+
+        Cache::forget($this->getOtpKey($email, $type));
+        Cache::forget($this->getAttemptsKey($email, $type));
 
         return true;
     }
 
-    /**Get the remaining attempts for an email.*/
-    public function getRemainingAttempts(string $email): int
+    /*
+    |------------------------------------------------------------
+    | Remaining Attempts
+    |------------------------------------------------------------
+    */
+    public function getRemainingAttempts(string $email, string $type): int
     {
-        return $this->maxAttempts - (int) Cache::get($this->getAttemptsKey($email), 0);
+        return $this->maxAttempts - (int) Cache::get($this->getAttemptsKey($email, $type), 0);
     }
 
-    /**Check if the OTP for the given email has expired.*/
-    public function isOtpExpired(string $email): bool
+    /*
+    |------------------------------------------------------------
+    | Check Expiry
+    |------------------------------------------------------------
+    */
+    public function isOtpExpired(string $email, string $type): bool
     {
-        return !Cache::has($this->getOtpKey($email));
+        return !Cache::has($this->getOtpKey($email, $type));
     }
 
-    /**
-     * Increment the failed attempts counter for an email.
-     * If max attempts reached, invalidate the OTP.
-     */
-    protected function incrementAttempts(string $email): void
+    /*
+    |------------------------------------------------------------
+    | Increment Attempts
+    |------------------------------------------------------------
+    */
+    protected function incrementAttempts(string $email, string $type): void
     {
-        $attempts = Cache::increment($this->getAttemptsKey($email));
+        $attempts = Cache::increment($this->getAttemptsKey($email, $type));
 
         if ($attempts >= $this->maxAttempts) {
-            Cache::forget($this->getOtpKey($email)); // Invalidate OTP after max attempts
-            // Optionally, you can add a temporary block for this email here
-            // Cache::put($this->getBlockKey($email), true, now()->addMinutes(10));
+            Cache::forget($this->getOtpKey($email, $type));
+            Cache::forget($this->getAttemptsKey($email, $type));
         }
     }
 
-    /**Check if the user is rate-limited.*/
-    protected function checkRateLimit(string $email): void
+    /*
+    |------------------------------------------------------------
+    | Rate Limiting
+    |------------------------------------------------------------
+    */
+    protected function checkRateLimit(string $email, string $type): void
     {
-        $lastRequestTime = Cache::get($this->getRateLimitKey($email));
+        $key = $this->getRateLimitKey($email, $type);
+
+        $lastRequestTime = Cache::get($key);
 
         if ($lastRequestTime && (now()->timestamp - $lastRequestTime) < $this->rateLimitSeconds) {
             $remainingTime = $this->rateLimitSeconds - (now()->timestamp - $lastRequestTime);
+
             throw new \Exception("Please wait {$remainingTime} seconds before requesting another OTP.");
         }
 
-        Cache::put($this->getRateLimitKey($email), now()->timestamp, now()->addSeconds($this->rateLimitSeconds));
+        Cache::put($key, now()->timestamp, now()->addSeconds($this->rateLimitSeconds));
     }
 
-    /**Generate a random numeric OTP.*/
+    /*
+    |------------------------------------------------------------
+    | Generate OTP
+    |------------------------------------------------------------
+    */
     protected function generateRandomOtp(): string
     {
-        return str_pad(random_int(0, (10 ** $this->otpLength) - 1), $this->otpLength, '0', STR_PAD_LEFT);
+        return str_pad(
+            random_int(0, (10 ** $this->otpLength) - 1),
+            $this->otpLength,
+            '0',
+            STR_PAD_LEFT
+        );
     }
 
-    /**Get the Redis key for OTP storage.*/
-    protected function getOtpKey(string $email): string
+    /*
+    |------------------------------------------------------------
+    | Keys (IMPORTANT CHANGE)
+    |------------------------------------------------------------
+    */
+
+    protected function getOtpKey(string $email, string $type): string
     {
-        return 'otp:' . md5($email);
+        return "otp:{$type}:" . md5($email);
     }
 
-    /**Get the Redis key for OTP attempts.*/
-    protected function getAttemptsKey(string $email): string
+    protected function getAttemptsKey(string $email, string $type): string
     {
-        return 'otp_attempts:' . md5($email);
+        return "otp_attempts:{$type}:" . md5($email);
     }
 
-    /**Get the Redis key for rate limiting.*/
-    protected function getRateLimitKey(string $email): string
+    protected function getRateLimitKey(string $email, string $type): string
     {
-        return 'otp_rate_limit:' . md5($email);
+        return "otp_rate_limit:{$type}:" . md5($email);
     }
-} 
+}
