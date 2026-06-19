@@ -12,7 +12,9 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\UnauthorizedException;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Cache;
+
 class AuthService
 {
     protected OtpService $otpService;
@@ -44,7 +46,7 @@ class AuthService
         throw new \Exception('Registration failed: ' . $e->getMessage());
     }
     try {
-        $this->sendOtp($user->email, 'email_verify');
+        $this->sendOtp($user->email);
     } catch (\Exception $e) {
     }
     $tokenRequest = Request::create('/oauth/token', 'POST', [ 
@@ -138,53 +140,43 @@ class AuthService
         auth()->user()->token()->revoke();
     }
 
-   
-    public function sendOtp(string $email, string $type): void
-{
-    $user = User::where('email', $email)->first();
+    public function sendOtp(string $email): void
+    {
+        $user = User::where('email', $email)->first();
 
-    if (!$user) {
-        throw new \Exception('User not found.');
+        if (!$user) {
+            throw new \Exception('User not found.');
+        }
+
+        
+        $otp = $this->otpService->generateOtp($email, 'email_verify');
+
+        Mail::to($email)->send(new OtpMail($otp));
     }
 
-    if ($type === 'email_verify' && $user->email_verified_at) {
-        throw new \Exception('Email already verified.');
-    }
-
-    $otp = $this->otpService->generateOtp($email, $type);
-
-    Mail::to($email)->send(new OtpMail($otp));
-}
     
-   public function verifyOtp(string $email, string $type, string $otp): bool
-{
-    $user = User::where('email', $email)->first();
+    public function verifyOtp(string $email, string $otp): array
+    {
+        $user = User::where('email', $email)->first();
 
-    if (!$user) {
-        throw new \Exception('User not found.');
-    }
+        if (!$user) {
+            throw new \Exception('User not found.');
+        }
 
-    if ($type === 'email_verify' && $user->email_verified_at) {
-        throw new \Exception('Email already verified.');
-    }
-
-    if ($this->otpService->verifyOtp($email, $type, $otp)) {
-        if ($type === 'email_verify') {
+        if ($this->otpService->verifyOtp($email, 'email_verify', $otp)) {
             $user->email_verified_at = now();
             $user->save();
+
+           
+            return [
+                'user' => $user,
+            ];
         }
 
-        if ($type === 'password_reset') {
-            
-           Cache::put("password_reset_verified:{$email}", true, now()->addMinutes(15));
-        }
-        return true;
+        throw new \Exception('Invalid OTP');
     }
 
-    throw new \Exception('Invalid OTP');
-}
-
-   public function resetPassword(string $email, string $newPassword): bool
+   public function forgotPassword(string $email): array
 {
     $user = User::where('email', $email)->first();
 
@@ -192,23 +184,117 @@ class AuthService
         throw new \Exception('User not found.');
     }
 
-   
-    $isVerified = Cache::get("password_reset_verified:{$email}");
+    $otp = $this->otpService->generateOtp($email, 'password_reset');
 
-    if (!$isVerified) {
-        throw new \Exception('Please verify your OTP first.');
+    Mail::to($email)->send(new OtpMail($otp));
+
+    $resetToken = Str::uuid()->toString();
+
+    Cache::put(
+        "reset_email:{$resetToken}",
+        $email,
+        now()->addMinutes(15)
+    );
+
+    return [
+        'reset_token' => $resetToken
+    ];
+}
+
+  public function verifyResetOtp(string $resetToken,string $otp): array
+{
+    $email = Cache::get("reset_email:{$resetToken}");
+
+    if (!$email) {
+        throw new \Exception('Invalid or expired reset token.');
+    }
+
+    $user = User::where('email', $email)->first();
+
+    if (!$user) {
+        throw new \Exception('User not found.');
+    }
+
+    if (!$this->otpService->verifyOtp(
+        $email,
+        'password_reset',
+        $otp
+    )) {
+        throw new \Exception('Invalid OTP');
+    }
+
+    $this->otpService->setTemporaryFlag(
+        $email,
+        'password_reset_verified',
+        15
+    );
+
+    Cache::forget("reset_email:{$resetToken}");
+
+    $tokenResult = $this->generateUserToken($user);
+
+    return [
+        'token' => $tokenResult
+];
+}
+
+   public function resetPassword(User $user,string $newPassword): bool
+{
+    if (
+        !$this->otpService->hasTemporaryFlag(
+            $user->email,
+            'password_reset_verified'
+        )
+    ) {
+        throw new \Exception(
+            'Session expired or invalid.'
+        );
     }
 
     $user->update([
         'password' => Hash::make($newPassword)
     ]);
 
-  
-    Cache::forget("password_reset_verified:{$email}");
+    $user->tokens()->delete();
+
+    $this->otpService->clearTemporaryFlag(
+        $user->email,
+        'password_reset_verified'
+    );
 
     return true;
 }
 
+    protected function generateUserToken(User $user): array
+    {
+        
+        $tokenResult = $user->createToken('Password Reset Token');
+        
+        return [
+            'access_token' => $tokenResult->accessToken,
+            'token_type' => 'Bearer',
+            'expires_at' => $tokenResult->token->expires_at,
+        ];
+    }
 
 
+public function resendResetOtp(string $resetToken): void
+{
+    $email = Cache::get("reset_email:{$resetToken}");
+
+    if (!$email) {
+        throw new \Exception(
+            'Reset session expired. Please start again.'
+        );
+    }
+
+    $otp = $this->otpService->generateOtp(
+        $email,
+        'password_reset'
+    );
+
+    Mail::to($email)->send(
+        new OtpMail($otp)
+    );
+}
 }

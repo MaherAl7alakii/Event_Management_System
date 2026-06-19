@@ -8,13 +8,15 @@ use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Requests\Auth\SendOtpRequest;
 use App\Http\Requests\Auth\VerifyOtpRequest;
 use App\Http\Requests\Auth\ResetPasswordRequest;
-use App\Http\Requests\Auth\ForgotPasswordRequest;
+use App\Http\Requests\Auth\VerifyResetOtpRequest;
+use App\Http\Requests\Auth\ResendResetOtpRequest;
 use App\Services\AuthService;
 use App\Traits\ResponseTrait;
 use ErrorException;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Cache;
 
 class AuthController extends Controller
 {
@@ -27,6 +29,7 @@ class AuthController extends Controller
         $this->authService = $authService;
     }
 
+   
     public function register(RegisterRequest $request): JsonResponse
     {
         $data = $request->validated();
@@ -79,77 +82,78 @@ class AuthController extends Controller
         );
     }
 
-    public function sendEmailVerificationOtp(): JsonResponse
+public function sendOtp(): JsonResponse
+{
+    $this->authService->sendOtp(auth()->user()->email);
+
+    return $this->apiResponse(null,'OTP sent successfully.',Response::HTTP_OK);
+}
+    public function verifyOtp(VerifyOtpRequest $request): JsonResponse
     {
-        $this->authService->sendOtp(auth()->user()->email, 'email_verify');
-
-        return $this->apiResponse(null, 'OTP for email verification sent successfully.', Response::HTTP_OK);
-    }
-
-    public function verifyEmail(VerifyOtpRequest $request): JsonResponse
-    {
-        
-        $email = $request->email ?? auth()->user()->email;
-
-        $this->authService->verifyOtp(
-            $email,
-            'email_verify',
-            $request->otp
-        );
-
-        return $this->apiResponse(
-            null,
-            'Email verified successfully.',
-            Response::HTTP_OK
-        );
-    }
-
-    public function sendForgotPasswordOtp(ForgotPasswordRequest $request): JsonResponse
-    {
-        $this->authService->sendOtp($request->email, 'password_reset');
-
-       
-        
-        return $this->apiResponse(
-            null,
-            'OTP for password reset sent successfully.',
-            Response::HTTP_OK
-        );
-    }
-
-    public function verifyForgotPasswordOtp(VerifyOtpRequest $request): JsonResponse
-    {
-       
-        $email = $request->email ?? (auth()->check() ? auth()->user()->email : null);
+        $email = auth('api')->check() ? auth('api')->user()->email : $request->email;
 
         if (!$email) {
-            return $this->apiResponse(null, 'Email is required for password reset verification.', Response::HTTP_UNPROCESSABLE_ENTITY);
+            return $this->apiResponse(null, 'Email is required for verification.', Response::HTTP_BAD_REQUEST);
         }
 
-        $this->authService->verifyOtp(
+        $result = $this->authService->verifyOtp(
             $email,
-            'password_reset',
             $request->otp
         );
 
         return $this->apiResponse(
+            $result,
+            'Email verified .',
+            Response::HTTP_OK
+        );
+    }
+
+    public function forgotPassword(SendOtpRequest $request): JsonResponse
+{
+    $result = $this->authService->forgotPassword($request->email);
+
+    return $this->apiResponse(
+        $result,
+        'OTP sent successfully to your email.',
+        Response::HTTP_OK
+    );
+}
+
+    public function resendOtp(SendOtpRequest $request): JsonResponse
+    {
+        $type = $request->input('type', 'email_verify'); // default to email_verify
+        
+        if ($type === 'password_reset') {
+            $this->authService->forgotPassword($request->email);
+        } else {
+            $this->authService->sendOtp($request->email);
+        }
+
+        return $this->apiResponse(
             null,
-            'OTP for password reset verified successfully. Proceed to reset password.',
+            'OTP resent successfully.',
+            Response::HTTP_OK
+        );
+    }
+
+    public function verifyResetOtp(VerifyResetOtpRequest $request): JsonResponse
+    {
+       $result = $this->authService->verifyResetOtp(
+    $request->reset_token,
+    $request->otp
+);
+
+        return $this->apiResponse(
+            $result,
+            'OTP verified successfully. You can now reset your password.',
             Response::HTTP_OK
         );
     }
 
     public function resetPassword(ResetPasswordRequest $request): JsonResponse
     {
-        
-        $email = $request->email ?? (auth()->check() ? auth()->user()->email : null);
-
-        if (!$email) {
-            return $this->apiResponse(null, 'Email is required for password reset.', Response::HTTP_UNPROCESSABLE_ENTITY);
-        }
-
         $this->authService->resetPassword(
-            $email,
+            auth()->user(),
             $request->password
         );
 
@@ -159,12 +163,16 @@ class AuthController extends Controller
             Response::HTTP_OK
         );
     }
+public function resendResetOtp(ResendResetOtpRequest $request): JsonResponse
+{
+    $this->authService->resendResetOtp(
+        $request->reset_token
+    );
 
-    public function resendOtp(SendOtpRequest $request): JsonResponse
-    {
-        $type = $request->input('type', 'email_verify');
-        $this->authService->sendOtp($request->email, $type);
-
-        return $this->apiResponse(null, 'OTP resent successfully.', Response::HTTP_OK);
-    }
+    return $this->apiResponse(
+        null,
+        'OTP resent successfully.',
+        Response::HTTP_OK
+    );
+}
 }

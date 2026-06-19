@@ -4,7 +4,7 @@ namespace App\Http\Requests\Auth;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class ResetPasswordRequest extends FormRequest
+class VerifyResetOtpRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -14,7 +14,8 @@ class ResetPasswordRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'password' => ['required', 'confirmed', 'min:8'],
+            'otp' => ['required', 'string', 'digits:' . config('otp.length', 6)],
+            'reset_token' => ['required', 'string'],
         ];
     }
 }

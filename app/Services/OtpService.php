@@ -145,4 +145,29 @@ class OtpService
     {
         return "otp_rate_limit:{$type}:" . md5($email);
     }
+
+    /*
+    |------------------------------------------------------------
+    | Temporary Success Flag (for reset password / protected actions)
+    |------------------------------------------------------------
+    */
+    public function setTemporaryFlag(string $email, string $action, int $minutes = 15): void
+    {
+        Cache::put($this->getFlagKey($email, $action), true, now()->addMinutes($minutes));
+    }
+
+    public function hasTemporaryFlag(string $email, string $action): bool
+    {
+        return Cache::has($this->getFlagKey($email, $action));
+    }
+
+    public function clearTemporaryFlag(string $email, string $action): void
+    {
+        Cache::forget($this->getFlagKey($email, $action));
+    }
+
+    protected function getFlagKey(string $email, string $action): string
+    {
+        return "temp_flag:{$action}:" . md5($email);
+    }
 }
