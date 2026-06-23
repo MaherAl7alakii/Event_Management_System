@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\LoginWithGoogleRequest;
 use App\Http\Requests\Auth\RefreshRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Requests\Auth\SendOtpRequest;
@@ -10,6 +11,7 @@ use App\Http\Requests\Auth\VerifyOtpRequest;
 use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Http\Requests\Auth\VerifyResetOtpRequest;
 use App\Http\Requests\Auth\ResendResetOtpRequest;
+use App\Http\Resources\UserResource;
 use App\Services\AuthService;
 use App\Traits\ResponseTrait;
 use ErrorException;
@@ -29,7 +31,7 @@ class AuthController extends Controller
         $this->authService = $authService;
     }
 
-   
+
     public function register(RegisterRequest $request): JsonResponse
     {
         $data = $request->validated();
@@ -37,7 +39,7 @@ class AuthController extends Controller
 
         return $this->apiResponse(
             [
-                'user' => $user['user'],
+                'user' => new UserResource($user['user']),
                 'token' => $user['token'],
             ],
             'Registration completed successfully. OTP sent for verification.',
@@ -53,6 +55,23 @@ class AuthController extends Controller
 
         return $this->apiResponse(
             $token,
+            'Login successfully.',
+            Response::HTTP_OK,
+        );
+    }
+
+    public function loginWithGoogle(LoginWithGoogleRequest $request)
+    {
+
+        $googleToken = $request->input('google_token');
+
+        $user = $this->authService->loginWithGoogle($googleToken);
+
+        return $this->apiResponse(
+            [
+                'user' => new UserResource($user['user']),
+                'token' => $user['token'],
+            ],
             'Login successfully.',
             Response::HTTP_OK,
         );
@@ -122,7 +141,7 @@ public function sendOtp(): JsonResponse
     public function resendOtp(SendOtpRequest $request): JsonResponse
     {
         $type = $request->input('type', 'email_verify'); // default to email_verify
-        
+
         if ($type === 'password_reset') {
             $this->authService->forgotPassword($request->email);
         } else {

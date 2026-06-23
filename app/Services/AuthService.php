@@ -40,7 +40,7 @@ class AuthService
             $permissions = $role->permissions->pluck('name')->toArray();
             $user->givePermissionTo($permissions);
 
-            DB::commit(); 
+            DB::commit();
     } catch (\Exception $e) {
         DB::rollBack();
         throw new \Exception('Registration failed: ' . $e->getMessage());
@@ -49,7 +49,7 @@ class AuthService
         $this->sendOtp($user->email);
     } catch (\Exception $e) {
     }
-    $tokenRequest = Request::create('/oauth/token', 'POST', [ 
+    $tokenRequest = Request::create('/oauth/token', 'POST', [
             'grant_type' => 'password',
             'client_id' => config('services.passport.client_id'),
             'client_secret' => config('services.passport.client_secret'),
@@ -106,12 +106,106 @@ class AuthService
 
         if (!$response->isSuccessful()) {
             throw new AuthenticationException('Client authentication failed');
-        
+
         }
 
         $token = json_decode($response->getContent(), true);
 
         return $token;
+    }
+
+
+
+    public function loginWithGoogle(string $googleToken)
+    {
+
+        $client = new \Google_Client(['client_id' => config('services.google.client_id')]);
+        $payload = $client->verifyIdToken($googleToken);
+
+        if (!$payload) {
+            throw new AuthenticationException('Invalid Google Token');
+        }
+
+        if (empty($payload['email'])) {
+            throw new AuthenticationException('Google account must provide a valid email address.');
+        }
+
+        $email = $payload['email'];
+        $name = $payload['name'] ?? explode('@', $email)[0];
+
+        DB::beginTransaction();
+        try {
+
+            $user = User::where('email', $email)->first();
+
+            if (!$user) {
+
+                $user = User::create([
+                    'name' => $name,
+                    'email' => $email,
+                    'password' => Hash::make(Str::random(24)),
+                ]);
+
+                $user->email_verified_at = now();
+                $user->save();
+
+
+                $roleName = request()->is('*customer*') ? 'customer' : 'service_provider';
+
+                $role = Role::query()->where('name', $roleName)->first();
+                if ($role) {
+                    $user->assignRole($role);
+                    $permissions = $role->permissions->pluck('name')->toArray();
+                    $user->givePermissionTo($permissions);
+                }
+            } else {
+
+                if (!(
+                    (request()->is('*admin*') && $user->hasRole('admin')) ||
+                    (request()->is('*customer*') && $user->hasRole('customer')) ||
+                    (request()->is('*service_provider*') && $user->hasRole('service_provider'))
+                )) {
+                    throw new UnauthorizedException();
+                }
+
+
+                if (!$user->email_verified_at) {
+                    $user->email_verified_at = now();
+                    $user->save();
+                    $user->refresh();
+                }
+            }
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
+
+
+        $tokenRequest = Request::create('/oauth/token', 'POST', [
+            'grant_type' => 'password',
+            'client_id' => config('services.passport.client_id'),
+            'client_secret' => config('services.passport.client_secret'),
+            'username' => $user->email,
+            'password' => 'social_auth_bypass',
+            'scope' => '',
+            'is_social' => true,
+        ]);
+
+        $response = app()->handle($tokenRequest);
+
+        if (!$response->isSuccessful()) {
+            throw new AuthenticationException('Client authentication failed');
+        }
+
+        $token = json_decode($response->getContent(), true);
+
+
+        return [
+            'user' => $user,
+            'token' => $token,
+        ];
     }
 
 
@@ -148,13 +242,13 @@ class AuthService
             throw new \Exception('User not found.');
         }
 
-        
+
         $otp = $this->otpService->generateOtp($email, 'email_verify');
 
         Mail::to($email)->send(new OtpMail($otp));
     }
 
-    
+
     public function verifyOtp(string $email, string $otp): array
     {
         $user = User::where('email', $email)->first();
@@ -167,7 +261,7 @@ class AuthService
             $user->email_verified_at = now();
             $user->save();
 
-           
+
             return [
                 'user' => $user,
             ];
@@ -267,9 +361,9 @@ class AuthService
 
     protected function generateUserToken(User $user): array
     {
-        
+
         $tokenResult = $user->createToken('Password Reset Token');
-        
+
         return [
             'access_token' => $tokenResult->accessToken,
             'token_type' => 'Bearer',
@@ -297,4 +391,5 @@ public function resendResetOtp(string $resetToken): void
         new OtpMail($otp)
     );
 }
+
 }
