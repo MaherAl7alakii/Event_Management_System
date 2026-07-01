@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Governorate;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -20,6 +21,8 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             UserSeeder::class,
+            GovernorateSeeder::class,
+            CitySeeder::class,
         ]);
         // User::factory(10)->create();
 
