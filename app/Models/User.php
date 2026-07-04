@@ -60,4 +60,16 @@ class User extends Authenticatable
 
         return Hash::check($password, $this->password);
     }
+
+    public function profile()
+{
+    return $this->hasOne(Profile::class);
+}
+
+public function serviceProvider()
+{
+    return $this->hasOne(ServiceProvider::class);
+}
+
+
 }
