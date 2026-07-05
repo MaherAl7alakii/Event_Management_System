@@ -23,20 +23,27 @@ class RolesAndPermissionsSeeder extends Seeder
             'login',
             'register',
             'logout',
-            'refresh'
+            'refresh',
+            'create_service',
+            'update_service',
+            'delete_service'
         ];
 
         foreach ($permissions as $permission) {
             Permission::findOrCreate($permission,'api');
         }
-        $adminRole = Role::create(['name' => 'admin', 'guard_name' => 'api']);
-        $servesProviderRole = Role::create(['name' => 'service_provider', 'guard_name' => 'api']);
-        $customerRole = Role::create(['name' => 'customer','guard_name' => 'api']);
+        $adminRole          = Role::findOrCreate('admin', 'api');
+        $serviceProviderRole = Role::findOrCreate('service_provider', 'api');
+        $customerRole       = Role::findOrCreate('customer', 'api');
 
 
         $adminRole->syncPermissions($permissions);
 
-        $servesProviderRole->syncPermissions(['login','register','logout','refresh']);
+        $serviceProviderRole->syncPermissions([
+            'login','register','logout','refresh',
+            'create_service','update_service','delete_service'
+
+        ]);
 
         $customerRole->syncPermissions(['login','register','logout','refresh']);
 

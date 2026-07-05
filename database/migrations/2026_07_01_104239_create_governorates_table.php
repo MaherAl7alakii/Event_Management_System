@@ -13,8 +13,19 @@ return new class extends Migration
     {
         Schema::create('governorates', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
             $table->timestamps();
+        });
+
+
+        Schema::create('governorate_translations', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('governorate_id')->constrained()->cascadeOnDelete();
+
+            $table->string('locale')->index();
+
+            $table->string('name');
+
+            $table->unique(['governorate_id', 'locale']);
         });
     }
 

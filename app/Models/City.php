@@ -2,17 +2,24 @@
 
 namespace App\Models;
 
+use Astrotomic\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
 
 class City extends Model
 {
-    protected $fillable = [
-        'name',
-        'governorate_id'
-    ];
+    use Translatable;
+    protected $fillable = ['governorate_id'];
+
+    public $translatedAttributes = ['name'];
+
 
     public function governorate()
     {
         return $this->belongsTo(Governorate::class);
+    }
+
+    public function services()
+    {
+        return $this->hasMany(Service::class);
     }
 }

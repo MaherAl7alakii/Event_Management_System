@@ -60,4 +60,15 @@ class User extends Authenticatable
 
         return Hash::check($password, $this->password);
     }
+
+    public function services()
+    {
+        return $this->hasMany(Service::class, 'provider_id');
+    }
+
+
+    public function searchHistory()
+    {
+        return $this->hasMany(SearchHistory::class, 'user_id');
+    }
 }
