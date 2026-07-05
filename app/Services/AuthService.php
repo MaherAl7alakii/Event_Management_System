@@ -230,7 +230,7 @@ class AuthService
     }
 
     public function logout(): void
-    {
+    { 
         auth()->user()->token()->revoke();
     }
 
