@@ -25,7 +25,7 @@ class AppServiceProvider extends ServiceProvider
     {
         Passport::enablePasswordGrant();
 
-        Passport::tokensExpireIn(CarbonInterval::minutes(15));
+        Passport::tokensExpireIn(CarbonInterval::minutes(15000));
         Passport::refreshTokensExpireIn(CarbonInterval::days(3));
         Passport::personalAccessTokensExpireIn(CarbonInterval::minutes(10));
     }

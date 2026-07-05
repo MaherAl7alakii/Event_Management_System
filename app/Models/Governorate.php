@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use Astrotomic\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
 
 class Governorate extends Model
 {
-    protected $fillable = [
-        'name'
-    ];
+    use Translatable;
+
+    public $translatedAttributes = ['name'];
 
     public function cities()
     {

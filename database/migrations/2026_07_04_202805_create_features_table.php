@@ -11,21 +11,21 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('cities', function (Blueprint $table) {
+        Schema::create('features', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('governorate_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('service_id')->constrained('services')->cascadeOnDelete();
             $table->timestamps();
         });
 
-        Schema::create('city_translations', function (Blueprint $table) {
+        Schema::create('feature_translations', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('city_id')->constrained()->cascadeOnDelete();
-
+            $table->foreignId('feature_id')->constrained()->cascadeOnDelete();
             $table->string('locale')->index();
 
-            $table->string('name');
+            $table->string('value');
 
-            $table->unique(['city_id', 'locale']);
+
+            $table->unique(['feature_id', 'locale']);
         });
     }
 
@@ -34,6 +34,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('cities');
+        Schema::dropIfExists('features');
     }
 };
