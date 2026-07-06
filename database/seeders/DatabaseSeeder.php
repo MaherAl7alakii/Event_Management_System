@@ -6,6 +6,7 @@ use App\Models\Governorate;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Psy\Readline\Hoa\Event;
 
 
 class DatabaseSeeder extends Seeder
@@ -25,6 +26,7 @@ class DatabaseSeeder extends Seeder
             CitySeeder::class,
             CategorySeeder::class,
             ServiceSeeder::class,
+            EventTypeSeeder::class
         ]);
         // User::factory(10)->create();
 
