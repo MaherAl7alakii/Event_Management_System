@@ -32,5 +32,8 @@ return [
         'service'  => 'الخدمة',
         'services' => 'خدمات',
         'search_history' => 'سجل البحث',
+        'event' => 'الحدث',
+        'events' => 'احداث'
+
     ]
 ];

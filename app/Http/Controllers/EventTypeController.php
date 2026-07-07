@@ -13,7 +13,7 @@ class EventTypeController extends Controller
     use ResponseTrait;
     public function index()
     {
-        $eventTypes = EventType::All();
+        $eventTypes = EventType::query()->latest()->get();
 
         return $this->apiResponse(
             EventTypeResource::collection($eventTypes),

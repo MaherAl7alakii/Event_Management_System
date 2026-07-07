@@ -75,7 +75,6 @@ class AuthService
         }
 
         $user = User::where('email', $data['email'])->first();
-
         if (!$user->email_verified_at) {
     throw new AuthenticationException(
         'Please verify your email first.'
@@ -230,7 +229,7 @@ class AuthService
     }
 
     public function logout(): void
-    { 
+    {
         auth()->user()->token()->revoke();
     }
 

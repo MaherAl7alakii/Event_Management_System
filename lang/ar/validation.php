@@ -191,5 +191,15 @@ return [
         'features'            => 'الميزات',
         'features.*.ar.value' => 'قيمة الميزة بالعربية',
         'features.*.en.value' => 'قيمة الميزة بالإنجليزية',
+
+
+        'event_type_id' => 'نوع الحدث',
+        'other_type'    => 'النوع المخصص',
+        'title'         => 'عنوان الحدث',
+        'cover_image'   => 'صورة الغلاف',
+        'event_date'    => 'تاريخ الحدث',
+        'start_time'    => 'وقت البدء',
+        'end_time'      => 'وقت الانتهاء',
+        'guests_count'  => 'عدد الضيوف',
     ],
 ];

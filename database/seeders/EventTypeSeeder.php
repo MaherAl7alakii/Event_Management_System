@@ -34,6 +34,7 @@ class EventTypeSeeder extends Seeder
                 'ar'   => 'أخرى',
                 'en'   => 'Other'
             ],
+
         ];
 
         foreach ($eventTypes as $type) {
