@@ -24,7 +24,6 @@ class ServiceProviderController extends Controller
     public function show(): JsonResponse
     {
         $provider = $this->providerService->getProviderByUserId(auth()->id());
-
         if (!$provider) {
             return $this->apiResponse(
                 null,
@@ -46,7 +45,7 @@ class ServiceProviderController extends Controller
         $provider = $this->providerService->updateOrCreateProvider(auth()->id(), $data);
 
         return $this->apiResponse(
-            new ServiceProviderResource($provider),
+            new ServiceProviderResource($this->providerService->getProviderByUserId(auth()->id())),
             'Service provider profile created successfully.',
             Response::HTTP_CREATED
         );
@@ -58,7 +57,7 @@ class ServiceProviderController extends Controller
         $provider = $this->providerService->updateOrCreateProvider(auth()->id(), $data);
 
         return $this->apiResponse(
-            new ServiceProviderResource($provider),
+            new ServiceProviderResource($this->providerService->getProviderByUserId(auth()->id())),
             'Service provider profile updated successfully.',
             Response::HTTP_OK
         );

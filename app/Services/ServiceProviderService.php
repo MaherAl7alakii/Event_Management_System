@@ -4,6 +4,10 @@ namespace App\Services;
 
 use App\Models\ServiceProvider;
 use Illuminate\Support\Facades\Storage;
+use App\Models\Category;
+use App\Models\Portfolio;
+use App\Models\ServiceProviderCategory;
+use App\Models\ServiceProviderDocument;
 use Illuminate\Support\Str;
 class ServiceProviderService
 {
@@ -29,14 +33,37 @@ $data['avatar'] = $data['avatar']->storeAs(
      
         }
 
-        return ServiceProvider::updateOrCreate(
-            ['user_id' => $userId],
+        $provider = ServiceProvider::updateOrCreate(
+            ["user_id" => $userId],
             $data
         );
+
+        if (isset($data["categories"])) {
+            $provider->categories()->delete();
+            foreach ($data["categories"] as $categoryId) {
+                $provider->categories()->create(["category_id" => $categoryId]);
+            }
+        }
+
+        if (isset($data["documents"])) {
+            $provider->documents()->delete();
+            foreach ($data["documents"] as $documentUrl) {
+                $provider->documents()->create(["url" => $documentUrl]);
+            }
+        }
+
+        if (isset($data["portfolios"])) {
+            $provider->portfolios()->delete();
+            foreach ($data["portfolios"] as $portfolioItem) {
+                $provider->portfolios()->create($portfolioItem);
+            }
+        }
+
+        return $provider;
     }
 
     public function getProviderByUserId(int $userId)
     {
-        return ServiceProvider::with(['user', 'city.governorate'])->where('user_id', $userId)->first();
+        return ServiceProvider::with(['user', 'city.governorate', 'categories.category', 'documents', 'portfolios', 'mainService'])->where('user_id', $userId)->first();
     }
 }
