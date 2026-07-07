@@ -20,6 +20,7 @@ class ServiceProvider extends Model
         'description',
         'verified_at',
         'rejection_reason',
+        'main_service_id',
     ];
 
     public function user()
@@ -31,5 +32,31 @@ class ServiceProvider extends Model
     {
         return $this->belongsTo(City::class);
     }
-   
+
+    public function categories()
+    {
+        return $this->hasMany(ServiceProviderCategory::class);
+    }
+
+    public function documents()
+    {
+        return $this->hasMany(ServiceProviderDocument::class);
+    }
+
+    public function portfolios()
+    {
+        return $this->hasMany(Portfolio::class);
+    }
+
+    public function mainService()
+    {
+        return $this->belongsTo(Category::class, 'main_service_id');
+    }
+
+    public function governorate()
+{
+    return $this->belongsTo(Governorate::class);
+}
+
+
 }

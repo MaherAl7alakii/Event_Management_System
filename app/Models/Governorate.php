@@ -15,4 +15,11 @@ class Governorate extends Model
     {
         return $this->hasMany(City::class);
     }
+
+    public function serviceProviders()
+{
+    return $this->hasMany(ServiceProvider::class);
+}
+
+
 }
