@@ -26,7 +26,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'refresh',
             'create_service',
             'update_service',
-            'delete_service'
+            'delete_service',
         ];
 
         foreach ($permissions as $permission) {

@@ -31,5 +31,7 @@ return [
         'service'  => 'Service',
         'services' => 'Services',
         'search_history' => 'search history',
+        'event' => 'Event',
+        'events' => 'Events'
     ]
 ];

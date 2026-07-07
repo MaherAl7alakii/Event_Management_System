@@ -84,5 +84,10 @@ public function serviceProvider()
     return $this->hasOne(ServiceProvider::class);
 }
 
+public function events()
+{
+    return $this->hasMany(Event::class);
+}
+
 
 }

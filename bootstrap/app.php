@@ -61,7 +61,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $exceptions->render(function (AuthenticationException $e, $request) {
             return response()->json([
-                'message' => __('messages.exceptions.unauthenticated'),
+                'message' => $e->getMessage(),
                 'status'  => Response::HTTP_UNAUTHORIZED,
                 'data'    => null
             ], Response::HTTP_UNAUTHORIZED);
