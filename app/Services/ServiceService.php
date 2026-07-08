@@ -23,8 +23,9 @@ class ServiceService
             ->onEachSide(2);
 
         $searchKeyword = $request->query('search_key');
-        if ($searchKeyword && auth()->check() && $services->total() > 0) {
-            auth()->user()->searchHistory()->updateOrCreate(
+        $user = auth('api')->user();
+        if ($searchKeyword && $user && $services->total() > 0) {
+            $user->searchHistory()->updateOrCreate(
                 ['keyword' => $searchKeyword],
                 ['updated_at' => now()]
             );
