@@ -75,19 +75,29 @@ class User extends Authenticatable
 
 
     public function profile()
-{
-    return $this->hasOne(Profile::class);
-}
+    {
+        return $this->hasOne(Profile::class);
+    }
+    public function serviceProvider()
+    {
+        return $this->hasOne(ServiceProvider::class);
+    }
 
-public function serviceProvider()
-{
-    return $this->hasOne(ServiceProvider::class);
-}
+    public function events()
+    {
+        return $this->hasMany(Event::class,'customer_id');
+    }
 
-public function events()
-{
-    return $this->hasMany(Event::class);
-}
+    public function customerBookings()
+    {
+        return $this->hasMany(Booking::class, 'customer_id');
+    }
+
+
+    public function providerBookings()
+    {
+        return $this->hasMany(Booking::class, 'provider_id');
+    }
 
 
 }
