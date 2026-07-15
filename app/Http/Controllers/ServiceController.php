@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Service\ServiceRequest;
+use App\Http\Resources\Service\ServiceIndexResource;
+use App\Http\Resources\Service\ServiceShowResource;
 use App\Http\Resources\ServiceResource;
 use App\Models\Service;
 use App\Services\ServiceService;
@@ -38,7 +40,7 @@ class ServiceController extends Controller
         return $this->apiResponse(
             !$services->isEmpty() ? [
                 'pagination' => $this->formatPaginatedResponse($services),
-                'services'   => ServiceResource::collection($services)
+                'services'   => ServiceIndexResource::collection($services)
             ] : null,
             $services->isEmpty()
                 ? __('messages.empty', ['resource' => __('messages.resources.services')])
@@ -52,13 +54,12 @@ class ServiceController extends Controller
      */
     public function store(ServiceRequest $request)
     {
-//        dd($request->all());
         $service = $this->serviceService->createService(
             $request->validated()
         );
 
         return $this->apiResponse(
-            new ServiceResource($service),
+            new ServiceShowResource($service),
             __('messages.created_success', ['resource' => __($this->resourceName)]),
             Response::HTTP_CREATED
         );
@@ -69,10 +70,12 @@ class ServiceController extends Controller
      */
     public function show(Service $service)
     {
+        $this->authorize('view', $service);
+
         $service = $this->serviceService->getService($service);
 
         return $this->apiResponse(
-            new ServiceResource($service),
+            new ServiceShowResource($service),
             __('messages.fetched_success', ['resource' => __($this->resourceName)]),
             Response::HTTP_OK
         );
@@ -91,7 +94,7 @@ class ServiceController extends Controller
         );
 
         return $this->apiResponse(
-            new ServiceResource($service),
+            new ServiceShowResource($service),
             __('messages.updated_success', ['resource' => __($this->resourceName)]),
             Response::HTTP_OK
         );

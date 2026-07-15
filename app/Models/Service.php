@@ -71,6 +71,10 @@ class Service extends Model
             })
             ->when($filters['min_rating'] ?? null, function ($query, $minRating) {
                 $query->where('rating', '>=', $minRating);
+            })
+            ->when(isset($filters['is_active']), function ($query) use ($filters) {
+                $isActive = filter_var($filters['is_active'], FILTER_VALIDATE_BOOLEAN);
+                $query->where('is_active', $isActive);
             });
     }
 
@@ -116,6 +120,11 @@ class Service extends Model
     public function features()
     {
         return $this->hasMany(Feature::class);
+    }
+
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class);
     }
 
 
