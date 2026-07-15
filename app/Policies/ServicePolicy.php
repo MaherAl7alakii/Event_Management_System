@@ -19,9 +19,23 @@ class ServicePolicy
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Service $service): bool
+    public function view(?User $user, Service $service): bool
     {
-        return false;
+        if ($service->is_active) {
+            return true;
+        }
+
+        $user =auth('api')->user();
+
+        if (! $user) {
+            return false;
+        }
+
+        $isAdmin = $user->hasRole('admin');
+        $isOwner = $user->hasRole('service_provider') && $user->id === $service->provider_id;
+
+
+        return $isAdmin || $isOwner;
     }
 
     /**

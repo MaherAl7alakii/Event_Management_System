@@ -11,11 +11,17 @@ class ServiceService
 
     public function getServices($request)
     {
+        $user = auth('api')->user();
+
         $services = Service::with(['category', 'city.governorate', 'images'])
-            ->when(auth()->user()?->hasRole('provider'), function ($query) {
-                $query->where('provider_id', auth()->id());
-            }, function ($query) {
-                $query->where('is_active', true);
+            ->when($user?->hasRole('admin'), function ($query) {
+                return $query;
+            }, function ($query) use ($user) {
+                return $query->when($user?->hasRole('service_provider'), function ($q) use ($user) {
+                    $q->where('provider_id', $user->id);
+                }, function ($q) {
+                    $q->where('is_active', true);
+                });
             })
             ->filter($request->all())
             ->sort($request->query('sort_by'))
@@ -23,7 +29,7 @@ class ServiceService
             ->onEachSide(2);
 
         $searchKeyword = $request->query('search_key');
-        $user = auth('api')->user();
+
         if ($searchKeyword && $user && $services->total() > 0) {
             $user->searchHistory()->updateOrCreate(
                 ['keyword' => $searchKeyword],
@@ -37,6 +43,7 @@ class ServiceService
 
     public function getService(Service $service)
     {
+
         return $service->load('features');
     }
 

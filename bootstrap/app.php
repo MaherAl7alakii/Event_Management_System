@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureProviderIsApproved;
 use App\Http\Middleware\SetLanguage;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Illuminate\Foundation\Application;
@@ -25,6 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
+            'provider.approved' => EnsureProviderIsApproved::class,
             'setLanguage' => SetLanguage::class,
             'verified.email' => \App\Http\Middleware\EnsureEmailIsVerified::class,
             'role' => RoleMiddleware::class,

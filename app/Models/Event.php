@@ -10,7 +10,7 @@ class Event extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'user_id',
+        'customer_id',
         'event_type_id',
         'other_type',
         'city_id',
@@ -33,9 +33,9 @@ class Event extends Model
     ];
 
 
-    public function user()
+    public function customer()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class,'customer_id');
     }
 
 
@@ -48,5 +48,10 @@ class Event extends Model
     public function city()
     {
         return $this->belongsTo(City::class);
+    }
+
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class);
     }
 }

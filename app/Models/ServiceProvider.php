@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 
 class ServiceProvider extends Model
 {
+    use HasFactory;
     protected $fillable = [
         'user_id',
         'city_id',
@@ -20,7 +22,7 @@ class ServiceProvider extends Model
         'description',
         'verified_at',
         'rejection_reason',
-        'main_service_id',
+//        'main_service_id',
     ];
 
     public function user()
@@ -48,15 +50,15 @@ class ServiceProvider extends Model
         return $this->hasMany(Portfolio::class);
     }
 
-    public function mainService()
-    {
-        return $this->belongsTo(Category::class, 'main_service_id');
-    }
+//    public function mainService()
+//    {
+//        return $this->belongsTo(Category::class, 'main_service_id');
+//    }
 
-    public function governorate()
-{
-    return $this->belongsTo(Governorate::class);
-}
+//    public function governorate()
+//{
+//    return $this->belongsTo(Governorate::class);
+//}
 
 
 }

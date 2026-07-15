@@ -3,13 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\EventRequest;
-use App\Http\Resources\EventIndexResource;
-use App\Http\Resources\EventShowResource;
+use App\Http\Resources\Event\EventIndexResource;
+use App\Http\Resources\Event\EventShowResource;
 use App\Models\Event;
 use App\Services\EventService;
 use App\Traits\ResponseTrait;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class EventController extends Controller
@@ -48,7 +47,7 @@ class EventController extends Controller
     public function store(EventRequest $request)
     {
         $data = $request->validated();
-        $data['user_id'] = auth()->id();
+        $data['customer_id'] = auth()->id();
 
         $event = $this->eventService->createEvent($data);
 

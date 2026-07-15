@@ -30,7 +30,7 @@ $data['avatar'] = $data['avatar']->storeAs(
     $fileName,
     'public'
 );
-     
+
         }
 
         $provider = ServiceProvider::updateOrCreate(
@@ -64,6 +64,6 @@ $data['avatar'] = $data['avatar']->storeAs(
 
     public function getProviderByUserId(int $userId)
     {
-        return ServiceProvider::with(['user', 'city.governorate', 'categories.category', 'documents', 'portfolios', 'mainService'])->where('user_id', $userId)->first();
+        return ServiceProvider::with(['user', 'city.governorate', 'categories.category', 'documents', 'portfolios'])->where('user_id', $userId)->first();
     }
 }

@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('events', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId('user_id');
+            $table->foreignId('customer_id');
             $table->foreignId('event_type_id')->nullable();
             $table->foreignId('city_id');
 
