@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 
-use App\Http\Resources\EventTypeResource;
+use App\Http\Resources\Event\EventTypeResource;
 use App\Models\EventType;
 use App\Traits\ResponseTrait;
 use Symfony\Component\HttpFoundation\Response;
