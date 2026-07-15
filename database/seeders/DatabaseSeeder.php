@@ -26,7 +26,8 @@ class DatabaseSeeder extends Seeder
             CitySeeder::class,
             CategorySeeder::class,
             ServiceSeeder::class,
-            EventTypeSeeder::class
+            EventTypeSeeder::class,
+            ServiceProviderSeeder::class,
         ]);
         // User::factory(10)->create();
 
