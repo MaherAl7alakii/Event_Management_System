@@ -85,7 +85,7 @@ class BookingService
 
 
 
-    private function calculateEstimatedPrice(Service $service, array $data): float
+    public function calculateEstimatedPrice(Service $service, array $data): float
     {
 
         $basePrice = (float) $service->base_price;

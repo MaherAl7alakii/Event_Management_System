@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Booking\BookingStoreRequest;
 use App\Http\Requests\Booking\BookingUpdateRequest;
+use App\Http\Requests\Booking\EstimatePriceRequest;
 use App\Http\Resources\Booking\BookingIndexResource;
 use App\Http\Resources\Booking\BookingShowResource;
 use App\Models\Booking;
 use App\Models\Event;
+use App\Models\Service;
 use App\Services\BookingService;
 use App\Traits\PaginationResponseTrait;
 use App\Traits\ResponseTrait;
@@ -104,6 +106,24 @@ class BookingController extends Controller
             __('messages.updated_success',  ['resource' => __($this->resourceName)]),
             Response::HTTP_OK
         );
+    }
+
+
+
+    public function estimatePrice(EstimatePriceRequest $request, Service $service)
+    {
+
+        $estimatedPrice = $this->bookingService->calculateEstimatedPrice($service, $request->validated());
+
+        return response()->json([
+            'status' => true,
+            'data'   => [
+                'service_id'      => $service->id,
+                'base_price'      => (float) $service->base_price,
+                'pricing_type'    => $service->pricing_type->value,
+                'estimated_price' => $estimatedPrice,
+            ]
+        ], Response::HTTP_OK);
     }
 
 }
