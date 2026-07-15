@@ -10,12 +10,19 @@ return [
     'empty'           => 'No :resource found to display',
 
 
+    'cannot_respond_to_booking' => 'Cannot respond to this booking in its current status.',
+    'booking_accepted'          => 'Booking accepted successfully, awaiting provider deposit payment.',
+    'booking_rejected'          => 'Booking request has been rejected successfully.',
+
+
     'validation' => [
         'at_least_one' => 'You must provide service details in at least one language (Arabic or English).',
         'features' => [
             'ar_required' => 'The Arabic value is required when both languages are provided.',
             'en_required' => 'The English value is required when both languages are provided.',
         ],
+
+        'invalid_intervals' => 'The duration must be in full hours or half hours only (multiples of 30 minutes).',
     ],
 
 
@@ -32,6 +39,8 @@ return [
         'services' => 'Services',
         'search_history' => 'search history',
         'event' => 'Event',
-        'events' => 'Events'
+        'events' => 'Events',
+        'booking'  => 'Booking',
+        'bookings' => 'Bookings',
     ]
 ];

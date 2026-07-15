@@ -201,5 +201,9 @@ return [
         'start_time'    => 'وقت البدء',
         'end_time'      => 'وقت الانتهاء',
         'guests_count'  => 'عدد الضيوف',
+        'action'         => 'الإجراء',
+        'provider_notes' => 'ملاحظات مزود الخدمة',
+        'duration'       => 'المدة الزمنية',
+        'quantity'       => 'الكمية',
     ],
 ];
