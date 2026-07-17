@@ -24,9 +24,19 @@ class RolesAndPermissionsSeeder extends Seeder
             'register',
             'logout',
             'refresh',
+
+            //Service
             'create_service',
             'update_service',
             'delete_service',
+
+            // Booking
+            'view_bookings',
+            'create_booking',
+            'estimate_booking_price',
+            'update_booking',
+            'accept_or_reject_booking',
+
         ];
 
         foreach ($permissions as $permission) {
@@ -41,11 +51,25 @@ class RolesAndPermissionsSeeder extends Seeder
 
         $serviceProviderRole->syncPermissions([
             'login','register','logout','refresh',
-            'create_service','update_service','delete_service'
+            'create_service',
+            'update_service',
+            'delete_service',
+            'view_bookings',
+            'accept_or_reject_booking',
 
         ]);
 
-        $customerRole->syncPermissions(['login','register','logout','refresh']);
+        $customerRole->syncPermissions([
+            'login',
+            'register',
+            'logout',
+            'refresh',
+            'view_bookings',
+            'create_booking',
+            'estimate_booking_price',
+            'update_booking',
+
+        ]);
 
     }
 }
