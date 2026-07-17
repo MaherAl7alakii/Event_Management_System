@@ -6,17 +6,17 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('bookings')->middleware(['auth:api','verified.email','setLanguage','provider.approved'])->group(function () {
 
-    Route::get('/', [BookingController::class, 'index']);
+    Route::get('/', [BookingController::class, 'index'])->middleware('permission:view_bookings');
 
-    Route::post('/', [BookingController::class, 'store']);
+    Route::post('/', [BookingController::class, 'store'])->middleware('permission:create_booking');
 
-    Route::get('/service/{service}/estimate-price', [BookingController::class, 'estimatePrice']);
+    Route::get('/service/{service}/estimate-price', [BookingController::class, 'estimatePrice'])->middleware('permission:estimate_booking_price');
 
     Route::prefix('{booking}')->group(function () {
-        Route::get('/', [BookingController::class, 'show']);
-        Route::put('/', [BookingController::class, 'update']);
-        Route::post('/accept', [BookingStatusController::class, 'accept']);
-        Route::post('/reject', [BookingStatusController::class, 'reject']);
+        Route::get('/', [BookingController::class, 'show'])->middleware('permission:view_bookings');
+        Route::put('/', [BookingController::class, 'update'])->middleware('permission:update_booking');
+        Route::post('/accept', [BookingStatusController::class, 'accept'])->middleware('permission:accept_or_reject_booking');
+        Route::post('/reject', [BookingStatusController::class, 'reject'])->middleware('permission:accept_or_reject_booking');
 
     });
 
