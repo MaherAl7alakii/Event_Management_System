@@ -40,7 +40,7 @@ class BookingIndexResource extends JsonResource
             ],
             'service_date'    => $this->service_date->format('Y-m-d'),
             'start_time'      => $this->start_time->format('H:i'),
-            'status'          => $this->status,
+            'status'          => $this->status->value,
             'estimated_price' => (float) $this->estimated_price,
         ];
     }

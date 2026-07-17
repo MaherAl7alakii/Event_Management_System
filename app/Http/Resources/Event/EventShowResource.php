@@ -28,7 +28,7 @@ class EventShowResource extends JsonResource
             'event_type_id'      =>$this->eventType->id,
             'event_type_name' => $this->other_type ?? $this->eventType?->name,
             'guests_count'       => (int) $this->guests_count,
-            'status'             => $this->status,
+            'status'             => $this->status->value,
             'submitted_at'       => $this->submitted_at?->format('Y-m-d H:i:s'),
             'confirmed_at'       => $this->confirmed_at?->format('Y-m-d H:i:s'),
         ];
