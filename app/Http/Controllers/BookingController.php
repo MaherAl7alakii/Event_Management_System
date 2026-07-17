@@ -55,12 +55,32 @@ class BookingController extends Controller
         );
     }
 
+    public function getEventBookings(Request $request ,Event $event)
+    {
+
+        $this->authorize('viewBookings', $event);
+
+        $status = $request->query('status');
+
+        $bookings = $this->bookingService->getBookingsByEvent($event ,$status);
+
+        return $this->apiResponse(
+            !$bookings->isEmpty() ? BookingIndexResource::collection($bookings): null,
+            $bookings->isEmpty()
+                ? __('messages.empty', ['resource' => __($this->resourcesName)])
+                : __('messages.fetched_success', ['resource' => __($this->resourcesName)]),
+            Response::HTTP_OK
+        );
+    }
+
+
     /**
      * Store a newly created resource in storage.
      */
     public function store(BookingStoreRequest $request)
     {
         $event = Event::findOrFail($request->validated()['event_id']);
+
         $this->authorize('create', [Booking::class, $event]);
 
         $booking = $this->bookingService->createBooking($request->validated(), auth()->id());

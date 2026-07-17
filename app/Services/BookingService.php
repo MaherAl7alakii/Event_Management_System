@@ -1,9 +1,12 @@
 <?php
 
 namespace App\Services;
+use App\Enums\BookingStatus;
 use App\Models\Booking;
+use App\Models\Event;
 use App\Models\Service;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use function Termwind\renderUsing;
 
 class BookingService
 {
@@ -14,12 +17,24 @@ class BookingService
                 $query->where('customer_id', $user->id)
                     ->orWhere(function ($q) use ($user) {
                         $q->where('provider_id', $user->id)
-                            ->where('status', '!=', 'draft');
+                            ->where('status', '!=', BookingStatus::DRAFT->value);
                     });
             })
             ->ofStatus($status)
             ->latest()
             ->paginate(15);
+    }
+
+
+    public function getBookingsByEvent(Event $event,?string $status)
+    {
+        $bookings =  $event->bookings()
+            ->with(['service', 'customer', 'provider'])
+            ->ofStatus($status)
+            ->latest()
+            ->get();
+
+        return $bookings;
     }
 
     public function createBooking(array $data, $customerId): Booking
@@ -29,7 +44,7 @@ class BookingService
         $data['base_price'] = $service->base_price;
         $data['pricing_type'] = $service->pricing_type;
         $data['estimated_price'] = $this->calculateEstimatedPrice($service, $data);
-        $data['status'] = 'draft';
+        $data['status'] = BookingStatus::DRAFT->value;;
         $data['customer_id'] = $customerId;
         $data['provider_id'] = $service->provider_id;
 
@@ -67,14 +82,14 @@ class BookingService
         //---- Notification ----
         if ($action === 'accept') {
             $booking->update([
-                'status'      => 'accepted',
+                'status'      => BookingStatus::ACCEPTED->value,
                 'accepted_at' => now(),
             ]);
 
 
         } elseif ($action === 'reject') {
             $booking->update([
-                'status' => 'rejected',
+                'status' => BookingStatus::REJECTED->value,
                 'rejected_at' => now(),
             ]);
 

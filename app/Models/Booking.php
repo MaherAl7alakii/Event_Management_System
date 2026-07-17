@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\BookingStatus;
 use App\Enums\PricingType;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -39,7 +40,11 @@ class Booking extends Model
             'service_date' => 'date',
             'start_time'   => 'datetime',
             'accepted_at'  => 'datetime',
+            'rejected_at'  => 'datetime',
+            'confirmed_at' => 'datetime',
+            'completed_at' => 'datetime',
             'pricing_type' => PricingType::class,
+            'status'       => BookingStatus::class,
         ];
     }
 

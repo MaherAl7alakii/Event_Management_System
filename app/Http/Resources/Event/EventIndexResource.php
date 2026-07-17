@@ -19,7 +19,7 @@ class EventIndexResource extends JsonResource
             'title'        => $this->title,
             'cover_image'  => $this->cover_image,
             'event_date'   => $this->event_date->format('Y-m-d'),
-            'status'       => $this->status,
+            'status'       => $this->status->value,
             'governorate_name' => $this->city?->governorate?->name,
             'city_name'    => $this->city?->name,
             'service_count' => 5

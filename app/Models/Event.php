@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\EventStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -30,6 +31,7 @@ class Event extends Model
         'event_date'   => 'date',
         'submitted_at' => 'datetime',
         'confirmed_at' => 'datetime',
+        'status'       => EventStatus::class,
     ];
 
 

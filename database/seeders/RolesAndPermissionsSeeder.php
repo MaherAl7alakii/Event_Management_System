@@ -36,7 +36,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'estimate_booking_price',
             'update_booking',
             'accept_or_reject_booking',
-
+            'view_event_bookings',
         ];
 
         foreach ($permissions as $permission) {
@@ -68,6 +68,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'create_booking',
             'estimate_booking_price',
             'update_booking',
+            'view_event_bookings',
 
         ]);
 

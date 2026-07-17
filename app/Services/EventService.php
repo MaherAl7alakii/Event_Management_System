@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\EventStatus;
 use App\Models\Event;
 use App\Models\User;
 
@@ -20,7 +21,7 @@ class EventService
     {
 
         $event = Event::create($data);
-        $event->status = 'draft';
+        $event->status = EventStatus::DRAFT;;
 
         return $event;
     }
