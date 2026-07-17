@@ -63,4 +63,10 @@ class EventPolicy
     {
         return false;
     }
+
+    public function viewBookings(User $user, Event $event): bool
+    {
+
+        return $user->id === $event->customer_id;
+    }
 }

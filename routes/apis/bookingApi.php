@@ -8,6 +8,8 @@ Route::prefix('bookings')->middleware(['auth:api','verified.email','setLanguage'
 
     Route::get('/', [BookingController::class, 'index'])->middleware('permission:view_bookings');
 
+    Route::get('events/{event}', [BookingController::class, 'getEventBookings'])->middleware('permission:view_event_bookings');
+
     Route::post('/', [BookingController::class, 'store'])->middleware('permission:create_booking');
 
     Route::get('/service/{service}/estimate-price', [BookingController::class, 'estimatePrice'])->middleware('permission:estimate_booking_price');

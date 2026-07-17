@@ -3,8 +3,10 @@
 namespace App\Services;
 use App\Enums\BookingStatus;
 use App\Models\Booking;
+use App\Models\Event;
 use App\Models\Service;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use function Termwind\renderUsing;
 
 class BookingService
 {
@@ -21,6 +23,18 @@ class BookingService
             ->ofStatus($status)
             ->latest()
             ->paginate(15);
+    }
+
+
+    public function getBookingsByEvent(Event $event,?string $status)
+    {
+        $bookings =  $event->bookings()
+            ->with(['service', 'customer', 'provider'])
+            ->ofStatus($status)
+            ->latest()
+            ->get();
+
+        return $bookings;
     }
 
     public function createBooking(array $data, $customerId): Booking
