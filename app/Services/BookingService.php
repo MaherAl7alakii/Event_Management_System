@@ -6,10 +6,18 @@ use App\Models\Booking;
 use App\Models\Event;
 use App\Models\Service;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 use function Termwind\renderUsing;
 
 class BookingService
 {
+
+    protected EventStatusResolver $statusResolver;
+
+    public function __construct(EventStatusResolver $statusResolver)
+    {
+        $this->statusResolver = $statusResolver;
+    }
     public function getUserBookings($user, ?string $status)
     {
         return Booking::with(['service', 'customer', 'provider'])
@@ -79,21 +87,27 @@ class BookingService
 
     public function respondToBooking(Booking $booking, string $action): Booking
     {
-        //---- Notification ----
-        if ($action === 'accept') {
-            $booking->update([
-                'status'      => BookingStatus::ACCEPTED->value,
-                'accepted_at' => now(),
-            ]);
+        DB::transaction(function () use ($booking, $action) {
+
+            if ($action === 'accept') {
+                $booking->update([
+                    'status' => BookingStatus::ACCEPTED->value,
+                    'accepted_at' => now(),
+                ]);
 
 
-        } elseif ($action === 'reject') {
-            $booking->update([
-                'status' => BookingStatus::REJECTED->value,
-                'rejected_at' => now(),
-            ]);
+            } elseif ($action === 'reject') {
+                $booking->update([
+                    'status' => BookingStatus::REJECTED->value,
+                    'rejected_at' => now(),
+                ]);
+            }
 
-        }
+            $this->statusResolver->resolveAndPersist($booking->event);
+
+            //---- Notification ----
+
+        });
 
         return $booking->fresh(['service', 'customer', 'provider', 'event.city.governorate']);
     }

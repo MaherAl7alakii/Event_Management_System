@@ -15,4 +15,35 @@ enum BookingStatus: string
     case EXPIRED = 'expired';
 
 
+
+
+    public static function unsentStatuses(): array
+    {
+        return [self::DRAFT];
+    }
+
+
+    public static function awaitingProviderStatuses(): array
+    {
+        return [self::PENDING];
+    }
+
+
+    public static function terminalRejectedStatuses(): array
+    {
+        return [self::REJECTED, self::EXPIRED];
+    }
+
+
+    public static function acceptedOrBeyondStatuses(): array
+    {
+        return [
+            self::ACCEPTED,
+            self::DEPOSIT_PAID,
+            self::CONFIRMED,
+            self::COMPLETED,
+        ];
+    }
+
+
 }
