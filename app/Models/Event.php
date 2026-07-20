@@ -130,7 +130,7 @@ class Event extends Model
 
         if ($unpaidAcceptedAddOn) {
             return [
-                'action' => 'pay_addon',
+                'action' => 'pay_deposit',
                 'amount' => $unpaidAcceptedAddOn->totalValue(),
             ];
         }
