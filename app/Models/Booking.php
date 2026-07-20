@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Booking extends Model
 {
-    use  SoftDeletes;
+    use SoftDeletes;
 
     protected $fillable = [
         'service_id',
@@ -31,7 +31,7 @@ class Booking extends Model
         'accepted_at',
         'rejected_at',
         'confirmed_at',
-        'completed_at'
+        'completed_at',
     ];
 
     protected function casts(): array
@@ -39,6 +39,7 @@ class Booking extends Model
         return [
             'service_date' => 'date',
             'start_time'   => 'datetime',
+            'submitted_at' => 'datetime',
             'accepted_at'  => 'datetime',
             'rejected_at'  => 'datetime',
             'confirmed_at' => 'datetime',
@@ -48,8 +49,6 @@ class Booking extends Model
         ];
     }
 
-
-
     public function scopeOfStatus(Builder $query, ?string $status): Builder
     {
         return $query->when($status, function ($q) use ($status) {
@@ -57,21 +56,15 @@ class Booking extends Model
         });
     }
 
-
-
-
-
     public function service()
     {
         return $this->belongsTo(Service::class);
     }
 
-
     public function customer()
     {
         return $this->belongsTo(User::class, 'customer_id');
     }
-
 
     public function provider()
     {
@@ -81,5 +74,36 @@ class Booking extends Model
     public function event()
     {
         return $this->belongsTo(Event::class);
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+
+
+
+    public const DEPOSIT_PERCENTAGE = 0.30;
+
+    public function totalValue(): float
+    {
+        return (float) ($this->final_price ?? $this->estimated_price);
+    }
+
+
+    public function depositAmount(): float
+    {
+        return round($this->totalValue() * self::DEPOSIT_PERCENTAGE, 2);
+    }
+
+
+    public function finalBalanceAmount(): float
+    {
+        if ($this->status === BookingStatus::DEPOSIT_PAID) {
+            return max(round($this->totalValue() - $this->depositAmount(), 2), 0);
+        }
+
+        return $this->totalValue();
     }
 }

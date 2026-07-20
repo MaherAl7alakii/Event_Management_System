@@ -68,11 +68,13 @@ class BookingPolicy
 
     public function accept(User $user, Booking $booking): bool
     {
-        return $user->id === $booking->provider_id && $booking->status === 'pending';
+
+        return $user->id === $booking->provider_id && $booking->status->value === 'pending';
+
     }
 
     public function reject(User $user, Booking $booking): bool
     {
-        return $user->id === $booking->provider_id && $booking->status === 'pending';
+        return $user->id === $booking->provider_id && $booking->status->value === 'pending';
     }
 }

@@ -9,6 +9,10 @@ return [
     'deleted_success' => ':resource deleted successfully.',
     'empty'           => 'No :resource found to display',
 
+    'event_submitted_success' => 'The event has been submitted successfully.',
+    'booking_accepted_success' => ':resource accepted successfully.',
+    'booking_rejected_success' => ':resource rejected successfully.',
+
 
     'cannot_respond_to_booking' => 'Cannot respond to this booking in its current status.',
     'booking_accepted'          => 'Booking accepted successfully, awaiting provider deposit payment.',
@@ -32,6 +36,15 @@ return [
         'unauthorized'    => 'You do not have the required permissions for this action.',
         'unauthenticated' => 'You must log in first to access this resource.',
         'access_denied'   => 'Access to this resource is strictly forbidden.',
+    ],
+
+
+    'payment' => [
+        'submission_fee_required'    => 'Submission fee payment required to route your request to service providers.',
+        'event_submitted_success'    => 'Event request submitted successfully to service providers.',
+        'deposit_intent_created'     => 'Deposit payment session initialized successfully.',
+        'addon_intent_created'       => 'Add-on payment session initialized successfully.',
+        'final_balance_intent_created'=> 'Final balance payment session initialized successfully.',
     ],
 
     'resources' => [

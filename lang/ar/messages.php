@@ -8,6 +8,10 @@ return [
     'deleted_success' => 'تم حذف :resource بنجاح.',
     'empty'           => 'لا يوجد :resource لعرضها حالياً',
 
+    'event_submitted_success' => 'تم إرسال الطلب بنجاح.',
+    'booking_accepted_success' => 'تم قبول :resource بنجاح.',
+    'booking_rejected_success' => 'تم رفض :resource بنجاح.',
+
 
 
     'validation' => [
@@ -27,6 +31,15 @@ return [
         'unauthorized'    => 'لا تمتلك الصلاحيات الكافية للوصول إلى هذا الإجراء.',
         'unauthenticated' => 'يجب تسجيل الدخول أولاً للوصول إلى هذا المورد.',
         'access_denied'   => 'الوصول إلى هذا المورد ممنوع تماماً.',
+    ],
+
+
+    'payment' => [
+        'submission_fee_required'    => 'يرجى إكمال سداد رسوم الإرسال للبدء بتقديم طلبك للمزودين.',
+        'event_submitted_success'    => 'تم إرسال طلب الحدث بنجاح إلى جميع المزودين المعنيين.',
+        'deposit_intent_created'     => 'تم تجهيز جلسة دفع العربون بنجاح، يمكنك متابعة عملية الدفع.',
+        'addon_intent_created'       => 'تم تجهيز جلسة دفع الخدمات الإضافية بنجاح.',
+        'final_balance_intent_created'=> 'تم تجهيز جلسة دفع الرصيد المتبقي بنجاح.',
     ],
 
 
