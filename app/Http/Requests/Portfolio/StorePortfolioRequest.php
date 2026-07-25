@@ -31,11 +31,9 @@ class StorePortfolioRequest extends FormRequest
                 Rule::in(['image', 'video']),
             ],
 
-            'url' => [
-                'required',
-                'file',
-                'mimes:jpg,jpeg,png,mp4,mov,avi',
-                'max:20480', // 20MB
+           'url' => [
+                   'required',
+                   'url',
             ],
         ];
     }
@@ -48,8 +46,8 @@ class StorePortfolioRequest extends FormRequest
             'type.required' => 'The type field is required.',
             'type.in' => 'The type must be image or video.',
 
-            'url.required' => 'Please upload a file.',
-            'url.file' => 'The uploaded file is invalid.',
+           'url.required' => 'The url field is required.',
+           'url.url' => 'The url must be a valid URL.',
             'url.mimes' => 'Only jpg, jpeg, png, mp4, mov and avi files are allowed.',
             'url.max' => 'The file size must not exceed 20MB.',
         ];

@@ -32,10 +32,8 @@ class UpdatePortfolioRequest extends FormRequest
 
             'url' => [
                 'sometimes',
-                'file',
-                'mimes:jpg,jpeg,png,mp4,mov,avi',
-                'max:20480',
-            ],
+                'url',
+       ],
         ];
     }
 
@@ -43,7 +41,6 @@ class UpdatePortfolioRequest extends FormRequest
     {
         return [
             'type.in' => 'The type must be image or video.',
-            'url.file' => 'The uploaded file is invalid.',
             'url.mimes' => 'Only jpg, jpeg, png, mp4, mov and avi files are allowed.',
             'url.max' => 'The file size must not exceed 20MB.',
         ];

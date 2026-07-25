@@ -23,7 +23,7 @@ class PortfolioResource extends JsonResource
 
             'type' => $this->type,
 
-            'url' => $this->url ? asset('storage/' . $this->url) : null,
+           'url' => $this->url,
 
             'created_at' => $this->created_at,
 
