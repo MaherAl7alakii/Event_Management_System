@@ -14,6 +14,7 @@ return [
 
 
 
+
     'validation' => [
         'at_least_one' => 'يجب إدخال معلومات الخدمة بلغة واحدة على الأقل (العربية أو الإنجليزية).',
         'features' => [
@@ -43,6 +44,8 @@ return [
     ],
 
 
+
+
     'resources' => [
         'service'  => 'الخدمة',
         'services' => 'خدمات',
@@ -51,6 +54,10 @@ return [
         'events' => 'احداث',
         'booking'  => 'الحجز',
         'bookings' => 'حجوزات',
+
+        'working_hours' => 'أوقات العمل',
+        'calendar'      => 'التقويم',
+        'time_off'      => 'وقت التوقف',
 
     ]
 ];
