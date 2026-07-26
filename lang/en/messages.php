@@ -55,5 +55,9 @@ return [
         'events' => 'Events',
         'booking'  => 'Booking',
         'bookings' => 'Bookings',
+
+        'working_hours' => 'Working hours',
+        'calendar'      => 'Calendar',
+        'time_off'      => 'Time off',
     ]
 ];

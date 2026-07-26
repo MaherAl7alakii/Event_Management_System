@@ -61,4 +61,15 @@ class ServiceProvider extends Model
 //}
 
 
+    public function workingHours()
+   {
+      return $this->hasMany(WorkingHour::class);
+   }
+
+  public function timeOffs()
+  {
+      return $this->hasMany(TimeOff::class);
+  }
+
+
 }

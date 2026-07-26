@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Http\Resources\WorkingHourResource;
 use App\Models\Governorate;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -28,6 +29,7 @@ class DatabaseSeeder extends Seeder
             ServiceSeeder::class,
             EventTypeSeeder::class,
             ServiceProviderSeeder::class,
+            WorkingHoursSeeder::class,
         ]);
         // User::factory(10)->create();
 
