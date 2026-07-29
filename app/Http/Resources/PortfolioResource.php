@@ -16,11 +16,17 @@ class PortfolioResource extends JsonResource
     {
         return [
             'id' => $this->id,
+
             'service_provider_id' => $this->service_provider_id,
-            'type' => $this->type,
+
             'title' => $this->title,
-            'url' => $this->url,
+
+            'type' => $this->type,
+
+           'url' => $this->url,
+
             'created_at' => $this->created_at,
+
             'updated_at' => $this->updated_at,
         ];
     }
