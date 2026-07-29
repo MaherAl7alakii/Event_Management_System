@@ -21,7 +21,7 @@ class Booking extends Model
         'base_price',
         'estimated_price',
         'final_price',
-        'service_date',
+        'booking_date',
         'start_time',
         'duration',
         'quantity',
@@ -37,7 +37,7 @@ class Booking extends Model
     protected function casts(): array
     {
         return [
-            'service_date' => 'date',
+            'booking_date' => 'date',
             'start_time'   => 'datetime',
             'submitted_at' => 'datetime',
             'accepted_at'  => 'datetime',

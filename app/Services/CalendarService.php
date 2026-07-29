@@ -108,8 +108,8 @@ class CalendarService
                 BookingStatus::DEPOSIT_PAID->value,
                 BookingStatus::CONFIRMED->value,
             ])
-            ->whereBetween('service_date', [$from->toDateString(), $to->toDateString()])
-            ->pluck('service_date')
+            ->whereBetween('booking_date', [$from->toDateString(), $to->toDateString()])
+            ->pluck('booking_date')
             ->map(fn ($date) => $date->toDateString())
             ->unique()
             ->values()
@@ -148,7 +148,7 @@ class CalendarService
                 BookingStatus::DEPOSIT_PAID->value,
                 BookingStatus::CONFIRMED->value,
             ])
-            ->whereDate('service_date', $day->toDateString())
+            ->whereDate('booking_date', $day->toDateString())
             ->with(['service', 'customer'])
             ->orderBy('start_time')
             ->get();
