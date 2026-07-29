@@ -110,7 +110,6 @@ class CalendarController extends Controller
     {
         $this->authorize('view', $timeOff);
 
-        // 2. إرجاع البيانات باستخدام الـ ResponseTrait
         return $this->apiResponse(
             new TimeOffResource($timeOff),
             __('messages.fetched_success', ['resource' => __($this->timeOffResourceName)]),

@@ -19,7 +19,7 @@ class BookingShowResource extends JsonResource
         return [
             'id'                => $this->id,
             'status'            => $this->status->value,
-            'service_date'      => $this->service_date->format('Y-m-d'),
+            'booking_date'      => $this->booking_date->format('Y-m-d'),
             'start_time'        => $this->start_time->format('H:i'),
             'duration'          => $this->whenNotNull($this->duration),
             'quantity'          => $this->whenNotNull($this->quantity),

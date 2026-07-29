@@ -38,7 +38,7 @@ class BookingIndexResource extends JsonResource
                 'id'   => $this->event->city->id,
                 'name' => $this->event->city->name,
             ],
-            'service_date'    => $this->service_date->format('Y-m-d'),
+            'booking_date'    => $this->booking_date->format('Y-m-d'),
             'start_time'      => $this->start_time->format('H:i'),
             'status'          => $this->status->value,
             'estimated_price' => (float) $this->estimated_price,

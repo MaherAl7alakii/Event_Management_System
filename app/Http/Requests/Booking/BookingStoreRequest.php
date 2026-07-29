@@ -30,7 +30,6 @@ class BookingStoreRequest extends FormRequest
         return [
             'service_id'     => 'required|exists:services,id',
             'event_id'       => 'required|exists:events,id',
-            'service_date'   => 'required|date|after_or_equal:today',
             'start_time'     => 'required|date_format:H:i',
             'duration'       => [
                 Rule::requiredIf(in_array($pricingType, ['per_hour', 'per_hour_per_person'])),

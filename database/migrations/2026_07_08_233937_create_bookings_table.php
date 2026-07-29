@@ -27,7 +27,7 @@ return new class extends Migration
             $table->decimal('base_price', 10, 2);
             $table->decimal('estimated_price', 10, 2)->nullable();
             $table->decimal('final_price', 10, 2)->nullable();
-            $table->date('service_date');
+            $table->date('booking_date');
             $table->time('start_time');
             $table->unsignedInteger('duration')->nullable();
             $table->unsignedInteger('quantity')->nullable();

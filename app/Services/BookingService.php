@@ -48,6 +48,7 @@ class BookingService
     public function createBooking(array $data, $customerId): Booking
     {
         $service = Service::findOrFail($data['service_id']);
+        $event = Event::findOrFail($data['event_id']);
 
         $data['base_price'] = $service->base_price;
         $data['pricing_type'] = $service->pricing_type;
@@ -55,6 +56,7 @@ class BookingService
         $data['status'] = BookingStatus::DRAFT->value;;
         $data['customer_id'] = $customerId;
         $data['provider_id'] = $service->provider_id;
+        $data['booking_date']  = $event->event_date;
 
         $booking = Booking::create($data);
 

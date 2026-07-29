@@ -12,7 +12,7 @@ class WorkingHoursSeeder extends Seeder
      */
     public function run(): void
     {
-        $providerIds = range(1, 11);
+        $providerIds = range(1, 10);
         $daysOfWeek = range(0, 6);
 
         $rows = [];
