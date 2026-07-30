@@ -33,8 +33,6 @@ class ServiceShowResource extends JsonResource
                 'name' => $this->provider->serviceProvider->business_name,
                 'avatar' => $this->provider->serviceProvider->avatar,
             ],
-            'provider_id'       => $this->provider->serviceProvider->id,
-            'provider_name'     => $this->provider->serviceProvider->business_name,
             'pricing_type'      => $this->pricing_type->value,
             'pricing_type_view' => $this->pricing_type->view(),
             'base_price'        => $this->base_price,
