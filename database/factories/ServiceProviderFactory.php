@@ -26,7 +26,7 @@ class ServiceProviderFactory extends Factory
             'description'         => $this->faker->paragraph(3),
             'approval_status'     => 'approved',
             'verified_at'         => now(),
-            'avatar'              => 'avatars/default-provider.png',
+            'avatar'              => 'https://res.cloudinary.com/dqf3h5hcs/image/upload/v1754198165/premium_photo-1689977927774-401b12d137d6_uckeje.jpg',
         ];
     }
 }

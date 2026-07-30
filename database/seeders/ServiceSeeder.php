@@ -22,6 +22,22 @@ class ServiceSeeder extends Seeder
             "https://res.cloudinary.com/dqf3h5hcs/image/upload/v1783239661/thumbnail_fndk-aano-n-lhmr_l1gCKqCe_w5ohtv.jpg"
         ]);
 
+        $sampleFeatures = [
+            ['ar' => 'شامل جميع المعدات والتجهيزات الأساسية', 'en' => 'Includes all essential equipment and setup'],
+            ['ar' => 'مشرِف مخصص متواجد طوال فترة الفعالية', 'en' => 'Dedicated event coordinator on site'],
+            ['ar' => 'تصوير فيديو عالي الدقة 4K مع تسليم سريع', 'en' => '4K HD video recording with quick delivery'],
+            ['ar' => 'إمكانية تكييف وتعديل الثيم والديكور حسب الطلب', 'en' => 'Customizable theme and decoration upon request'],
+            ['ar' => 'خصم خاص للحجوزات المبكرة ولمنتصف الأسبوع', 'en' => 'Special discount for early and weekday bookings'],
+            ['ar' => 'خدمة النقل والتوصيل المجاني ضمن المدينة', 'en' => 'Free transportation and delivery within the city'],
+            ['ar' => 'توفير خيارات خالية من الجلوتين ونباتية حسب الطلب', 'en' => 'Gluten-free and vegan menu options available'],
+            ['ar' => 'أنظمة صوتية وحزم إضاءة ليزرية احترافية', 'en' => 'Professional sound systems and laser lighting packages'],
+            ['ar' => 'جلسة استشارية وتخطيط مجانية قبل تنفيذ المناسبة', 'en' => 'Free planning and consultation session before the event'],
+            ['ar' => 'توفير أجهزة ومعدات احتياطية للحالات الطارئة', 'en' => 'Backup equipment available for emergency situations'],
+            ['ar' => 'تجهيز صالة استراحة خاصة لكبار الشخصيات (VIP)', 'en' => 'Dedicated VIP lounge setup'],
+            ['ar' => 'فريق دعم فني وتشغيلي متواجد طيلة فترة الحفل', 'en' => 'On-site technical support throughout the event'],
+            ['ar' => 'منطقة مخصصة للأطفال مع أنشطة ترفيهية وآمنة', 'en' => 'Dedicated children area with safe entertainment activities'],
+        ];
+
 
         $categoryIds = DB::table('categories')->pluck('id')->toArray();
         $cityIds = DB::table('cities')->pluck('id')->toArray();
@@ -95,6 +111,29 @@ class ServiceSeeder extends Seeder
                         'address'     => "Syria, Selected City, Main Street, Building No. " . rand(1, 50),
                     ]
                 ]);
+
+
+                $selectedFeatures = collect($sampleFeatures)->random(rand(2, 4));
+                foreach ($selectedFeatures as $featureData) {
+                    $featureId = DB::table('features')->insertGetId([
+                        'service_id' => $serviceId,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+
+                    DB::table('feature_translations')->insert([
+                        [
+                            'feature_id' => $featureId,
+                            'locale'     => 'ar',
+                            'value'      => $featureData['ar'],
+                        ],
+                        [
+                            'feature_id' => $featureId,
+                            'locale'     => 'en',
+                            'value'      => $featureData['en'],
+                        ],
+                    ]);
+                }
 
                 $selectedImageUrl = $availableImages->random();
 

@@ -33,7 +33,7 @@ class EstimatePriceRequest extends FormRequest
                 'min:30',
                 function ($attribute, $value, $fail) {
                     if ($value % 30 !== 0) {
-                        $fail('The duration must be in valid intervals (e.g., multiples of 15 or 30 minutes).');
+                        $fail('The duration must be in 30-minute intervals (e.g., 30, 60, 90).');
                     }
                 },
             ],
