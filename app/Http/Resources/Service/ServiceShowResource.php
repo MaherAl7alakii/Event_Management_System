@@ -27,8 +27,12 @@ class ServiceShowResource extends JsonResource
         })->toArray();
 
         return [
-            'id'                => $this->id,
-            'provider_name'     => $this->provider->serviceProvider->business_name,
+            'id'       => $this->id,
+            'provider' => [
+                'id' => $this->provider->serviceProvider->id,
+                'name' => $this->provider->serviceProvider->business_name,
+                'avatar' => $this->provider->serviceProvider->avatar,
+            ],
             'pricing_type'      => $this->pricing_type->value,
             'pricing_type_view' => $this->pricing_type->view(),
             'base_price'        => $this->base_price,
