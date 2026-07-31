@@ -99,5 +99,8 @@ class User extends Authenticatable
         return $this->hasMany(Booking::class, 'provider_id');
     }
 
-
+public function reviews()
+{
+    return $this->hasMany(Review::class);
+}
 }

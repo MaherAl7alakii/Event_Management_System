@@ -71,5 +71,12 @@ class ServiceProvider extends Model
       return $this->hasMany(TimeOff::class);
   }
 
-
+public function galleries()
+{
+    return $this->hasMany(ServiceProviderGallery::class);
+}
+public function reviews()
+{
+    return $this->hasMany(Review::class);
+}
 }
