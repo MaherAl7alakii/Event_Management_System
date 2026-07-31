@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Booking\BookingRespondRequest;
 use App\Http\Resources\Booking\BookingShowResource;
 use App\Models\Booking;
 use App\Services\BookingService;
@@ -23,13 +24,13 @@ class BookingStatusController extends Controller
     }
 
 
-    public function accept(Booking $booking)
+    public function accept(BookingRespondRequest $request ,Booking $booking)
     {
 
         $this->authorize('accept', $booking);
 
 
-        $updatedBooking = $this->bookingService->respondToBooking($booking, 'accept');
+        $updatedBooking = $this->bookingService->respondToBooking($booking, 'accept',$request->buffer_after_minutes);
 
         return $this->apiResponse(
             new BookingShowResource($updatedBooking),

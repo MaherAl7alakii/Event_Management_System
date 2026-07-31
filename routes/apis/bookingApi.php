@@ -13,6 +13,7 @@ Route::prefix('bookings')->middleware(['auth:api','verified.email','setLanguage'
     Route::post('/', [BookingController::class, 'store'])->middleware('permission:create_booking');
 
     Route::get('/service/{service}/estimate-price', [BookingController::class, 'estimatePrice'])->middleware('permission:estimate_booking_price');
+    Route::get('/service/{service}/check-availability', [BookingController::class, 'checkAvailability']);
 
     Route::prefix('{booking}')->group(function () {
         Route::get('/', [BookingController::class, 'show'])->middleware('permission:view_bookings');

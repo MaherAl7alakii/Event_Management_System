@@ -24,6 +24,7 @@ class PaymentCompletionService
     public function __construct(
 //        private readonly StripeClient $stripe,
         private readonly EventSubmissionService $submissionService,
+        private readonly BookingDeadlineCalculator $deadlines,
     ) {
     }
 
@@ -77,11 +78,23 @@ class PaymentCompletionService
         };
     }
 
+
+
     private function handleDepositSideEffects(Event $event): void
     {
-        Booking::where('event_id', $event->id)
+        $bookings = Booking::where('event_id', $event->id)
             ->where('status', BookingStatus::ACCEPTED->value)
-            ->update(['status' => BookingStatus::DEPOSIT_PAID->value]);
+            ->get();
+
+        foreach ($bookings as $booking) {
+            $booking->update([
+                'status'                     => BookingStatus::DEPOSIT_PAID->value,
+                'deposit_deadline_at'        => null,
+//                'final_payment_deadline_at'  => $this->deadlines->finalPaymentDeadline($booking),
+            ]);
+            $booking->final_payment_deadline_at = $this->deadlines->finalPaymentDeadline($booking);
+            $booking->save();
+        }
 
         $event->update([
             'status'       => EventStatus::DEPOSIT_PAID->value,
@@ -104,6 +117,7 @@ class PaymentCompletionService
     }
 
 
+
     private function handleFinalBalanceSideEffects(Event $event): void
     {
         Booking::where('event_id', $event->id)
@@ -112,8 +126,10 @@ class PaymentCompletionService
                 BookingStatus::DEPOSIT_PAID->value,
             ])
             ->update([
-                'status'       => BookingStatus::CONFIRMED->value,
-                'confirmed_at' => now(),
+                'status'                     => BookingStatus::CONFIRMED->value,
+                'confirmed_at'               => now(),
+                'deposit_deadline_at'        => null,
+                'final_payment_deadline_at'  => null,
             ]);
 
         $event->update(['status' => EventStatus::CONFIRMED->value]);

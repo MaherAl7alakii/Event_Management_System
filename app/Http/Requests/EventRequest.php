@@ -58,6 +58,7 @@ class EventRequest extends FormRequest
     public function rules(): array
     {
         $isStore = $this->isMethod('post');
+        $minDate = now()->addDays(4)->toDateString();
 
         return [
             'event_type_id' => 'required|exists:event_types,id',
@@ -72,11 +73,18 @@ class EventRequest extends FormRequest
             'title'         => 'required|string|max:255',
             'cover_image'   => 'nullable|url|max:2048',
 
-            'event_date'    => $isStore ? 'required|date|after_or_equal:today' : 'required|date',
-
+//            'event_date'    => $isStore ? 'required|date|after_or_equal:{$minDate}' : 'required|date',
+           'event_date' => ['required', 'date_format:Y-m-d',"after_or_equal:{$minDate}"],
             'start_time'    => 'required|date_format:H:i',
             'end_time'      => 'required|date_format:H:i|after:start_time',
             'guests_count'  => 'required|integer|min:1',
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'booking_date.after_or_equal' => __('messages.booking_must_be_4_days_ahead'),
         ];
     }
 }

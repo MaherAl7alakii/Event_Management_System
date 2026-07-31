@@ -130,4 +130,31 @@ class Service extends Model
 
 
 
+  public function linkedServices()
+  {
+       $asOrigin = \App\Models\Service::query()
+          ->whereIn('id', function ($q) {
+                $q->select('linked_service_id')
+                      ->from('service_links')
+                      ->where('service_id', $this->id);
+           });
+
+      $asTarget = \App\Models\Service::query()
+           ->whereIn('id', function ($q) {
+                  $q->select('service_id')
+                  ->from('service_links')
+                      ->where('linked_service_id', $this->id);
+           });
+
+       return $asOrigin->union($asTarget)->get();
+
+    }
+
+
+
+
+
+
+
+
 }
