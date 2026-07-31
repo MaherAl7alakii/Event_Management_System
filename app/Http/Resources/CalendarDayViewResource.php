@@ -23,6 +23,7 @@ class CalendarDayViewResource extends JsonResource
                 'city_name'      => $booking['service']['city']['name']  ?? '',
                 'governorate_name' => $booking['service']['city']['governorate']['name'] ?? '',
                 'time_range'    => $startTime->format('g:i A') . ' - ' . $endTime->format('g:i A'),
+                'buffer_after_minutes'   => $booking['buffer_after_minutes'],
                 'type'          => 'booking',
                 'sort_time'     => $startTime->format('H:i:s'),
             ];

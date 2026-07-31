@@ -11,6 +11,12 @@ use App\Models\ServiceProviderDocument;
 use Illuminate\Support\Str;
 class ServiceProviderService
 {
+    private WorkingHoursService $workingHoursService;
+
+    public function __construct(WorkingHoursService $workingHoursService)
+    {
+        $this->workingHoursService = $workingHoursService;
+    }
     public function updateOrCreateProvider(int $userId, array $data)
     {
         if (isset($data['avatar']) && $data['avatar'] instanceof \Illuminate\Http\UploadedFile) {
@@ -58,6 +64,8 @@ $data['avatar'] = $data['avatar']->storeAs(
                 $provider->portfolios()->create($portfolioItem);
             }
         }
+
+        $this->workingHoursService->createDefaultWorkingHours($provider);
 
         return $provider;
     }
