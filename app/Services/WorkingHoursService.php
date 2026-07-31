@@ -12,6 +12,24 @@ use Illuminate\Support\Facades\DB;
 class WorkingHoursService
 {
 
+    public function createDefaultWorkingHours(ServiceProvider $provider)
+    {
+        return DB::transaction(function () use ($provider) {
+            foreach (range(0, 6) as $day) {
+                $isFriday = ($day === 5);
+
+                $provider->workingHours()->create([
+                    'day_of_week' => $day,
+                    'is_active'   => ! $isFriday,
+                    'start_time'  => $isFriday ? '00:00:00' : '09:00:00',
+                    'end_time'    => $isFriday ? '00:00:00' : '23:00:00',
+                ]);
+            }
+
+            return $provider->load('workingHours');
+        });
+    }
+
     public function updateWorkingHours(ServiceProvider $provider, array $days)
     {
         DB::transaction(function () use ($provider, $days) {
