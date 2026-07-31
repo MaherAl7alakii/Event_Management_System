@@ -13,6 +13,12 @@ return [
     'booking_rejected_success' => 'تم رفض :resource بنجاح.',
 
 
+    'date_available' => 'التاريخ متاح للحجز.',
+    'slot_available' => 'الموعد المحدد متاح للحجز.',
+
+    'booking_must_be_4_days_ahead' => 'يجب أن يكون تاريخ الحجز بعد 4 أيام على الأقل من اليوم.',
+
+
 
 
     'validation' => [
@@ -32,6 +38,14 @@ return [
         'unauthorized'    => 'لا تمتلك الصلاحيات الكافية للوصول إلى هذا الإجراء.',
         'unauthenticated' => 'يجب تسجيل الدخول أولاً للوصول إلى هذا المورد.',
         'access_denied'   => 'الوصول إلى هذا المورد ممنوع تماماً.',
+
+        'service_availability' => [
+            'service_inactive'      => 'هذه الخدمة غير متاحة حالياً.',
+            'outside_working_hours' => 'الوقت المطلوب خارج ساعات العمل المتاحة.',
+            'time_off_conflict'     => 'مقدم الخدمة غير متاح في الوقت المطلوب.',
+            'booking_conflict'      => 'الوقت المطلوب يتعارض مع حجز آخر قائم.',
+            'default'               => 'الخدمة غير متاحة في الوقت المطلوب.',
+        ],
     ],
 
 

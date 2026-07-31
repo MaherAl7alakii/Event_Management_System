@@ -19,6 +19,13 @@ return [
     'booking_rejected'          => 'Booking request has been rejected successfully.',
 
 
+
+    'date_available' => 'The selected date is available.',
+    'slot_available' => 'The selected time slot is available.',
+
+    'booking_must_be_4_days_ahead' => 'The booking date must be at least 4 days from today.',
+
+
     'validation' => [
         'at_least_one' => 'You must provide service details in at least one language (Arabic or English).',
         'features' => [
@@ -36,6 +43,14 @@ return [
         'unauthorized'    => 'You do not have the required permissions for this action.',
         'unauthenticated' => 'You must log in first to access this resource.',
         'access_denied'   => 'Access to this resource is strictly forbidden.',
+
+        'service_availability' => [
+            'service_inactive'      => 'This service is not currently active.',
+            'outside_working_hours' => 'The requested time is outside the provider\'s working hours.',
+            'time_off_conflict'     => 'The provider is unavailable at the requested time.',
+            'booking_conflict'      => 'The requested time conflicts with an existing booking.',
+            'default'               => 'This service is not available at the requested time.',
+        ],
     ],
 
 
@@ -46,6 +61,8 @@ return [
         'addon_intent_created'       => 'Add-on payment session initialized successfully.',
         'final_balance_intent_created'=> 'Final balance payment session initialized successfully.',
     ],
+
+
 
     'resources' => [
         'service'  => 'Service',

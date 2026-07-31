@@ -8,6 +8,10 @@ use Illuminate\Support\Facades\DB;
 
 class ServiceService
 {
+    public function __construct(
+        private readonly ServiceLinkService $serviceLinks,
+    ) {
+    }
 
     public function getServices($request)
     {
@@ -55,6 +59,7 @@ class ServiceService
 
             $imagesData = $data['images'] ?? [];
             $featuresData = $data['features'] ?? [];
+            $linkedServiceIds = $data['linked_service_ids'] ?? [];
 
             unset($data['images'], $data['features']);
 
@@ -73,6 +78,10 @@ class ServiceService
                 $this->createFeatures($service, $featuresData);
             }
 
+            if (!empty($linkedServiceIds)) {
+                $this->syncLinkedServices($service, $linkedServiceIds);
+            }
+
             return $service->refresh()->load('features');
         });
     }
@@ -84,6 +93,7 @@ class ServiceService
 
             $imagesData = $data['images'] ?? [];
             $featuresData = $data['features'] ?? [];
+            $linkedServiceIds = $data['linked_service_ids'] ?? null;
 
 
             unset($data['images'], $data['features']);
@@ -114,6 +124,10 @@ class ServiceService
 
             if (isset($featuresData)) {
                 $this->createFeatures($service, $featuresData);
+            }
+
+            if (!empty($linkedServiceIds)) {
+                $this->syncLinkedServices($service, $linkedServiceIds);
             }
 
 
@@ -226,6 +240,38 @@ class ServiceService
     {
         foreach($featuresData as $feathure) {
             $service->features()->create($feathure);
+        }
+    }
+
+
+
+
+    private function syncLinkedServices(Service $service, array $requestedLinkedServiceIds): void
+    {
+        $requestedIds = collect($requestedLinkedServiceIds)
+            ->reject(fn ($id) => (int) $id === $service->id)
+            ->unique()
+            ->values();
+
+        $currentIds = $this->serviceLinks->linkedServiceIdsFor($service->id);
+
+        $toLink = $requestedIds->diff($currentIds);
+        $toUnlink = $currentIds->diff($requestedIds);
+
+        foreach ($toLink as $id) {
+            $other = Service::find($id);
+
+            if ($other) {
+                $this->serviceLinks->link($service, $other);
+            }
+        }
+
+        foreach ($toUnlink as $id) {
+            $other = Service::find($id);
+
+            if ($other) {
+                $this->serviceLinks->unlink($service, $other);
+            }
         }
     }
 

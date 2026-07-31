@@ -7,6 +7,7 @@ use App\Enums\PricingType;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
 class Booking extends Model
 {
@@ -27,6 +28,7 @@ class Booking extends Model
         'quantity',
         'status',
         'customer_notes',
+        'buffer_after_minutes',
         'submitted_at',
         'accepted_at',
         'rejected_at',
@@ -46,6 +48,8 @@ class Booking extends Model
             'completed_at' => 'datetime',
             'pricing_type' => PricingType::class,
             'status'       => BookingStatus::class,
+            'deposit_deadline_at'       => 'datetime',
+            'final_payment_deadline_at' => 'datetime',
         ];
     }
 
@@ -82,6 +86,25 @@ class Booking extends Model
     }
 
 
+    public function startsAt(): Carbon
+    {
+        return Carbon::parse(
+            $this->booking_date->toDateString() . ' ' . $this->start_time->format('H:i:s')
+        );
+    }
+
+
+    public function endsAt(): Carbon
+    {
+        return $this->startsAt()->copy()->addMinutes((int) ($this->duration ?? 0));
+    }
+
+
+    public function endsAtWithBuffer(): Carbon
+    {
+        return $this->endsAt()->copy()->addMinutes((int) ($this->buffer_after_minutes ?? 0));
+    }
+
 
 
     public const DEPOSIT_PERCENTAGE = 0.30;
@@ -91,12 +114,10 @@ class Booking extends Model
         return (float) ($this->final_price ?? $this->estimated_price);
     }
 
-
     public function depositAmount(): float
     {
         return round($this->totalValue() * self::DEPOSIT_PERCENTAGE, 2);
     }
-
 
     public function finalBalanceAmount(): float
     {

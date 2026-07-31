@@ -1,23 +1,23 @@
 <?php
 
 namespace App\Services;
+
 use App\Enums\BookingStatus;
+use App\Exceptions\ServiceUnavailableException;
 use App\Models\Booking;
 use App\Models\Event;
 use App\Models\Service;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
-use function Termwind\renderUsing;
 
 class BookingService
 {
-
-    protected EventStatusResolver $statusResolver;
-
-    public function __construct(EventStatusResolver $statusResolver)
-    {
-        $this->statusResolver = $statusResolver;
+    public function __construct(
+        private readonly EventStatusResolver $statusResolver,
+        private readonly ServiceAvailabilityService $availability,
+        private readonly BookingDeadlineCalculator $deadlines,
+    ) {
     }
+
     public function getUserBookings($user, ?string $status)
     {
         return Booking::with(['service', 'customer', 'provider'])
@@ -33,74 +33,97 @@ class BookingService
             ->paginate(15);
     }
 
-
-    public function getBookingsByEvent(Event $event,?string $status)
+    public function getBookingsByEvent(Event $event, ?string $status)
     {
-        $bookings =  $event->bookings()
+        return $event->bookings()
             ->with(['service', 'customer', 'provider'])
             ->ofStatus($status)
             ->latest()
             ->get();
-
-        return $bookings;
     }
+
 
     public function createBooking(array $data, $customerId): Booking
     {
         $service = Service::findOrFail($data['service_id']);
         $event = Event::findOrFail($data['event_id']);
 
+        $data['booking_date'] = $event->event_date;
+
+        $this->assertAvailable(
+            service: $service,
+            bookingDate: $event->event_date->toDateString(),
+            startTime: $data['start_time'],
+            duration: $data['duration'] ?? null,
+        );
+
         $data['base_price'] = $service->base_price;
         $data['pricing_type'] = $service->pricing_type;
         $data['estimated_price'] = $this->calculateEstimatedPrice($service, $data);
-        $data['status'] = BookingStatus::DRAFT->value;;
+        $data['status'] = BookingStatus::DRAFT->value;
         $data['customer_id'] = $customerId;
         $data['provider_id'] = $service->provider_id;
-        $data['booking_date']  = $event->event_date;
 
-        $booking = Booking::create($data);
-
-        return $booking;
+        return Booking::create($data);
     }
 
-
+    /**
+     * @throws ServiceUnavailableException
+     */
     public function updateBooking(Booking $booking, array $data): Booking
     {
-
         $service = $booking->service;
 
-        if (isset($data['duration']) || isset($data['quantity'])) {
+        $touchesSchedule = isset($data['start_time']) || isset($data['duration']);
 
+        if ($touchesSchedule) {
+            $this->assertAvailable(
+                service: $service,
+                bookingDate: $booking->booking_date->toDateString(),
+                startTime: $data['start_time'] ?? $booking->start_time->format('H:i'),
+                duration: array_key_exists('duration', $data) ? $data['duration'] : $booking->duration,
+                excludeBookingId: $booking->id,
+            );
+        }
+
+        if (isset($data['duration']) || isset($data['quantity'])) {
             $priceContext = array_merge([
                 'duration' => $booking->duration,
                 'quantity' => $booking->quantity,
             ], $data);
 
             $data['estimated_price'] = $this->calculateEstimatedPrice($service, $priceContext);
-
         }
 
         $booking->update($data);
-
 
         return $booking->fresh(['service', 'customer', 'provider', 'event.city.governorate']);
     }
 
 
-    public function respondToBooking(Booking $booking, string $action): Booking
+    public function respondToBooking(Booking $booking, string $action, ?int $bufferAfterMinutes = null): Booking
     {
-        DB::transaction(function () use ($booking, $action) {
-
+        DB::transaction(function () use ($booking, $action, $bufferAfterMinutes) {
             if ($action === 'accept') {
-                $booking->update([
-                    'status' => BookingStatus::ACCEPTED->value,
-                    'accepted_at' => now(),
-                ]);
+                $this->assertAvailable(
+                    service: $booking->service,
+                    bookingDate: $booking->booking_date->toDateString(),
+                    startTime: $booking->start_time->format('H:i'),
+                    duration: $booking->duration,
+                    excludeBookingId: $booking->id,
+                );
 
+                $booking->update([
+                    'status'                => BookingStatus::ACCEPTED->value,
+                    'accepted_at'            => now(),
+                    'buffer_after_minutes'   => $bufferAfterMinutes,
+                ]);
+                $booking->deposit_deadline_at = $this->deadlines->depositDeadline($booking);
+                $booking->save();
 
             } elseif ($action === 'reject') {
                 $booking->update([
-                    'status' => BookingStatus::REJECTED->value,
+                    'status'      => BookingStatus::REJECTED->value,
                     'rejected_at' => now(),
                 ]);
             }
@@ -108,17 +131,13 @@ class BookingService
             $this->statusResolver->resolveAndPersist($booking->event);
 
             //---- Notification ----
-
         });
 
         return $booking->fresh(['service', 'customer', 'provider', 'event.city.governorate']);
     }
 
-
-
     public function calculateEstimatedPrice(Service $service, array $data): float
     {
-
         $basePrice = (float) $service->base_price;
 
         $durationInHours = isset($data['duration']) ? ($data['duration'] / 60) : 1;
@@ -131,5 +150,60 @@ class BookingService
             'per_hour_per_person' => $basePrice * $durationInHours * $quantity,
             default               => $basePrice,
         };
+    }
+
+    public function checkAvailability(
+        Service $service,
+        string $bookingDate,
+        ?string $startTime = null,
+        ?int $duration = null
+    ): array {
+
+        if ($startTime === null) {
+            $isDateAvailable = $this->availability->isDateAvailable($service, $bookingDate);
+
+            if (! $isDateAvailable) {
+                throw ServiceUnavailableException::forReason($service, 'outside_working_hours');
+            }
+
+            return [
+                'stage'        => 'date_validated',
+                'is_available' => true,
+            ];
+        }
+
+
+        $this->assertAvailable(
+            service: $service,
+            bookingDate: $bookingDate,
+            startTime: $startTime,
+            duration: $duration,
+        );
+
+        return [
+            'stage'        => $duration !== null ? 'full_slot_validated' : 'time_validated',
+            'is_available' => true,
+        ];
+    }
+
+
+    private function assertAvailable(
+        Service $service,
+        string $bookingDate,
+        string $startTime,
+        ?int $duration,
+        ?int $excludeBookingId = null,
+    ): void {
+        $reason = $this->availability->unavailabilityReason(
+            service: $service,
+            bookingDate: $bookingDate,
+            startTime: $startTime,
+            duration: $duration,
+            excludeBookingId: $excludeBookingId,
+        );
+
+        if ($reason !== null) {
+            throw ServiceUnavailableException::forReason($service, $reason);
+        }
     }
 }

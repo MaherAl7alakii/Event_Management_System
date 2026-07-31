@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Booking\BookingStoreRequest;
 use App\Http\Requests\Booking\BookingUpdateRequest;
+use App\Http\Requests\Booking\CheckBookingAvailabilityRequest;
 use App\Http\Requests\Booking\EstimatePriceRequest;
 use App\Http\Resources\Booking\BookingIndexResource;
 use App\Http\Resources\Booking\BookingShowResource;
@@ -144,6 +145,28 @@ class BookingController extends Controller
                 'estimated_price' => $estimatedPrice,
             ]
         ], Response::HTTP_OK);
+    }
+
+
+    public function checkAvailability(CheckBookingAvailabilityRequest $request,Service $service)
+    {
+
+        $result = $this->bookingService->checkAvailability(
+            service: $service,
+            bookingDate: $request->validated('booking_date'),
+            startTime: $request->validated('start_time'),
+            duration: $request->validated('duration'),
+        );
+
+        $messageKey = $result['stage'] === 'date_validated'
+            ? 'messages.date_available'
+            : 'messages.slot_available';
+
+        return $this->apiResponse(
+            null,
+            __($messageKey),
+            200
+        );
     }
 
 }

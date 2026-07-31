@@ -57,6 +57,8 @@ class ServiceRequest extends FormRequest
             'max_hours' => ['nullable', 'integer', 'gte:min_hours',],
             'max_guests' => ['nullable', 'integer', 'min:1',],
             'is_active' => ['nullable', 'boolean',],
+            'linked_service_ids'   => ['nullable', 'array'],
+            'linked_service_ids.*' => ['integer', 'exists:services,id'],
             'images'            => ['nullable', 'array', 'max:10'],
             'images.*.id'       => ['nullable', 'integer', 'exists:service_images,id'],
             'images.*.url'      => ['required', 'url'],

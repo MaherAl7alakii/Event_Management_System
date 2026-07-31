@@ -30,6 +30,7 @@ return new class extends Migration
             $table->date('booking_date');
             $table->time('start_time');
             $table->unsignedInteger('duration')->nullable();
+            $table->unsignedInteger('buffer_after_minutes')->nullable();
             $table->unsignedInteger('quantity')->nullable();
 
             $table->enum('status', [
@@ -42,9 +43,14 @@ return new class extends Migration
 
             $table->timestamp('submitted_at')->nullable();
             $table->timestamp('accepted_at')->nullable();
+            $table->timestamp('deposit_deadline_at')->nullable();
+            $table->timestamp('final_payment_deadline_at')->nullable();
             $table->timestamp('confirmed_at')->nullable();
             $table->timestamp('completed_at')->nullable();
             $table->timestamp('rejected_at')->nullable();
+
+
+
 
             $table->softDeletes();
             $table->timestamps();
