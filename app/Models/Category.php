@@ -16,4 +16,8 @@ class Category extends Model
     {
         return $this->hasMany(Service::class);
     }
+    public function galleries()
+{
+    return $this->hasMany(ServiceProviderGallery::class);
+}
 }
