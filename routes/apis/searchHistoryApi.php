@@ -4,7 +4,7 @@ use App\Http\Controllers\SearchHistoryController;
 use Illuminate\Support\Facades\Route;
 
 
-Route::middleware(['setLanguage','auth:api','verified.email','provider.approved'])->group(function () {
+Route::middleware(['setLanguage','auth:api','verified.email','provider.approved','check.banned'])->group(function () {
 
     Route::prefix('search-history')->group(function () {
         Route::get('/', [SearchHistoryController::class, 'index']);

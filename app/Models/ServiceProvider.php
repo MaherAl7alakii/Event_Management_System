@@ -25,6 +25,11 @@ class ServiceProvider extends Model
 //        'main_service_id',
     ];
 
+    public $casts = [
+        'created_at' => 'datetime',
+        'verified_at' => 'datetime',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -37,7 +42,7 @@ class ServiceProvider extends Model
 
     public function categories()
     {
-        return $this->hasMany(ServiceProviderCategory::class);
+        return $this->belongsToMany(Category::class, 'service_provider_categories');
     }
 
     public function documents()

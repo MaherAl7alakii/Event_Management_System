@@ -19,9 +19,6 @@ return new class extends Migration
 
     $table->foreignId('city_id')->nullable()->constrained()->nullOnDelete();
 
-//      $table->foreignId('governorate_id')->nullable()->constrained()->nullOnDelete();
-
-//    $table->foreignId("main_service_id")->nullable()->constrained("categories")->nullOnDelete();
 
     $table->enum('account_type',['individual','professional'])->default('individual');
 

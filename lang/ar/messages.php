@@ -19,6 +19,11 @@ return [
     'booking_must_be_4_days_ahead' => 'يجب أن يكون تاريخ الحجز بعد 4 أيام على الأقل من اليوم.',
 
 
+    'user_banned_success'        => 'تم حظر المستخدم بنجاح.',
+    'user_unbanned_success'      => 'تم إلغاء حظر المستخدم بنجاح.',
+    'account_banned' => 'تم حظر حسابك. يرجى التواصل مع الدعم الفني.',
+
+
 
 
     'validation' => [
@@ -72,6 +77,9 @@ return [
         'working_hours' => 'أوقات العمل',
         'calendar'      => 'التقويم',
         'time_off'      => 'وقت التوقف',
+
+        'customers'    => 'الزبائن',
+        'service_providers' => 'مزودي الخدمة',
 
     ]
 ];

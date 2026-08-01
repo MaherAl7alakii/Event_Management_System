@@ -26,6 +26,11 @@ return [
     'booking_must_be_4_days_ahead' => 'The booking date must be at least 4 days from today.',
 
 
+    'user_banned_success'        => 'User has been banned successfully.',
+    'user_unbanned_success'      => 'User has been unbanned successfully.',
+    'account_banned' => 'Your account has been banned. Please contact support.',
+
+
     'validation' => [
         'at_least_one' => 'You must provide service details in at least one language (Arabic or English).',
         'features' => [
@@ -76,5 +81,8 @@ return [
         'working_hours' => 'Working hours',
         'calendar'      => 'Calendar',
         'time_off'      => 'Time off',
+
+        'customers'    => 'customers',
+        'service_providers' => 'Service providers',
     ]
 ];

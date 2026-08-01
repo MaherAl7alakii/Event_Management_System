@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\ServiceProvider;
 use App\Models\WorkingHour;
 use Illuminate\Database\Seeder;
 
@@ -12,10 +13,15 @@ class WorkingHoursSeeder extends Seeder
      */
     public function run(): void
     {
-        $providerIds = range(1, 10);
-        $daysOfWeek = range(0, 6);
+        $providerIds = ServiceProvider::pluck('id');
 
+        if ($providerIds->isEmpty()) {
+            return;
+        }
+
+        $daysOfWeek = range(0, 6);
         $rows = [];
+        $now = now();
 
         foreach ($providerIds as $providerId) {
             foreach ($daysOfWeek as $day) {
@@ -27,8 +33,8 @@ class WorkingHoursSeeder extends Seeder
                     'is_active'            => ! $isFriday,
                     'start_time'           => $isFriday ? '00:00:00' : '09:00:00',
                     'end_time'             => $isFriday ? '00:00:00' : '23:00:00',
-                    'created_at'           => now(),
-                    'updated_at'           => now(),
+                    'created_at'           => $now,
+                    'updated_at'           => $now,
                 ];
             }
         }
