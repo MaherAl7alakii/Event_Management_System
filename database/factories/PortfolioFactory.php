@@ -16,13 +16,14 @@ class PortfolioFactory extends Factory
      */
     public function definition(): array
     {
-        $type = $this->faker->randomElement(['image', 'video']);
+//        $type = $this->faker->randomElement(['image', 'video']);
+        $type = 'image';
 
         return [
             'type'  => $type,
             'title' => $this->faker->realText(30),
             'url'   => $type === 'image'
-                ? $this->faker->imageUrl(640, 480, 'events', true)
+                ? 'https://res.cloudinary.com/dqf3h5hcs/image/upload/v1783239464/6uhoF_hyijfk.jpg'
                 : 'https://example.com/portfolio/event-video.mp4',
         ];
     }

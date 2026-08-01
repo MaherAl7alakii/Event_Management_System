@@ -8,8 +8,9 @@ use App\Models\Booking;
 use App\Models\ServiceProvider;
 use App\Models\TimeOff;
 use App\Models\WorkingHour;
+use App\Support\TimeSpan;
 use Illuminate\Support\Carbon;
-
+use Illuminate\Support\Collection;
 
 class CalendarService
 {
@@ -19,8 +20,8 @@ class CalendarService
      *     booked_hours: float,
      *     available_hours: float,
      *     unavailable_hours: float,
-     *     bookings: \Illuminate\Support\Collection,
-     *     time_offs: \Illuminate\Support\Collection,
+     *     bookings: Collection,
+     *     time_offs: Collection,
      * }
      */
     public function getDayView(ServiceProvider $provider, string $date): array
@@ -33,9 +34,9 @@ class CalendarService
             ->where('is_active', true)
             ->first();
 
-        $bookings = $this->bookingsForDay($provider, $day);
-        $timeOffs = $this->timeOffsForDay($provider, $day);
 
+        $bookings = $this->bookingsRelevantToDay($provider, $day);
+        $timeOffs = $this->timeOffsRelevantToDay($provider, $day);
 
         if (! $workingHour) {
             return [
@@ -48,13 +49,11 @@ class CalendarService
             ];
         }
 
-        $workStart = Carbon::parse($day->toDateString() . ' ' . $workingHour->start_time);
-        $workEnd = Carbon::parse($day->toDateString() . ' ' . $workingHour->end_time);
+        [$workStart, $workEnd] = $workingHour->windowFor($day);
         $totalWorkingMinutes = $workStart->diffInMinutes($workEnd);
 
         $bookedMinutes = $this->sumBookedMinutes($bookings, $workStart, $workEnd);
-        $unavailableMinutes = $this->sumTimeOffMinutes($timeOffs, $workStart, $workEnd);
-
+        $unavailableMinutes = $this->sumTimeOffMinutes($timeOffs, $day, $workStart, $workEnd);
 
         $bookedMinutes = min($bookedMinutes, $totalWorkingMinutes);
         $unavailableMinutes = min($unavailableMinutes, $totalWorkingMinutes - $bookedMinutes);
@@ -97,7 +96,6 @@ class CalendarService
         return $overview;
     }
 
-
     private function bookedDatesInRange(ServiceProvider $provider, Carbon $from, Carbon $to): array
     {
         return Booking::query()
@@ -115,7 +113,6 @@ class CalendarService
             ->values()
             ->all();
     }
-
 
     private function vacationDatesInRange(ServiceProvider $provider, Carbon $from, Carbon $to): array
     {
@@ -138,9 +135,10 @@ class CalendarService
         return array_values(array_unique($dates));
     }
 
-    private function bookingsForDay(ServiceProvider $provider, Carbon $day)
+
+    private function bookingsRelevantToDay(ServiceProvider $provider, Carbon $day): Collection
     {
-        return Booking::query()
+        $candidates = Booking::query()
             ->whereHas('service', fn ($q) => $q->where('provider_id', $provider->user_id))
             ->whereIn('status', [
                 BookingStatus::PENDING->value,
@@ -148,30 +146,54 @@ class CalendarService
                 BookingStatus::DEPOSIT_PAID->value,
                 BookingStatus::CONFIRMED->value,
             ])
-            ->whereDate('booking_date', $day->toDateString())
+            ->whereBetween('booking_date', [
+                $day->copy()->subDay()->toDateString(),
+                $day->toDateString(),
+            ])
             ->with(['service', 'customer'])
             ->orderBy('start_time')
             ->get();
+
+        $dayStart = $day->copy();
+        $dayEnd = $day->copy()->addDay();
+
+        return $candidates->filter(function (Booking $booking) use ($day, $dayStart, $dayEnd) {
+            if ($booking->booking_date->toDateString() === $day->toDateString()) {
+                return true;
+            }
+
+
+            return $booking->startsAt()->lt($dayEnd) && $booking->endsAtWithBuffer()->gt($dayStart);
+        })->values();
     }
 
-    private function timeOffsForDay(ServiceProvider $provider, Carbon $day)
+
+    private function timeOffsRelevantToDay(ServiceProvider $provider, Carbon $day): Collection
     {
-        return TimeOff::query()
+        $candidates = TimeOff::query()
             ->where('service_provider_id', $provider->id)
-            ->overlapping($day, $day)
+            ->overlapping($day->copy()->subDay(), $day)
             ->get();
+
+        $dayStart = $day->copy();
+        $dayEnd = $day->copy()->addDay();
+
+        return $candidates->filter(
+            fn (TimeOff $timeOff) => $timeOff->overlapsWith($dayStart, $dayEnd)
+        )->values();
     }
 
-    private function sumBookedMinutes($bookings, Carbon $workStart, Carbon $workEnd): int
+    /**
+     * @param  Collection<int, Booking>  $bookings
+     */
+    private function sumBookedMinutes(Collection $bookings, Carbon $workStart, Carbon $workEnd): int
     {
         $total = 0;
 
         foreach ($bookings as $booking) {
-            $date = $workStart->toDateString();
-            $start = Carbon::parse($date . ' ' . $booking->start_time->format('H:i:s'));
-            $end = $booking->end_time !== null
-                ? Carbon::parse($date . ' ' . $booking->end_time->format('H:i:s'))
-                : $start->copy()->addMinutes((int) ($booking->duration ?? 0));
+            $start = $booking->startsAt();
+            $end = $booking->endsAt();
+
 
             $clampedStart = $start->max($workStart);
             $clampedEnd = $end->min($workEnd);
@@ -184,7 +206,7 @@ class CalendarService
         return $total;
     }
 
-    private function sumTimeOffMinutes($timeOffs, Carbon $workStart, Carbon $workEnd): int
+    private function sumTimeOffMinutes(Collection $timeOffs, Carbon $day, Carbon $workStart, Carbon $workEnd): int
     {
         $total = 0;
 
@@ -194,12 +216,11 @@ class CalendarService
                 continue;
             }
 
-            $date = $workStart->toDateString();
-            $start = Carbon::parse($date . ' ' . $timeOff->start_time);
-            $end = Carbon::parse($date . ' ' . $timeOff->end_time);
 
-            $clampedStart = $start->max($workStart);
-            $clampedEnd = $end->min($workEnd);
+            [$blockStart, $blockEnd] = TimeSpan::resolve($timeOff->start_date, $timeOff->start_time, $timeOff->end_time);
+
+            $clampedStart = $blockStart->max($workStart);
+            $clampedEnd = $blockEnd->min($workEnd);
 
             if ($clampedEnd->gt($clampedStart)) {
                 $total += $clampedStart->diffInMinutes($clampedEnd);

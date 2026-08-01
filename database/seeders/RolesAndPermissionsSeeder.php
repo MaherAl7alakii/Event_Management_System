@@ -37,6 +37,14 @@ class RolesAndPermissionsSeeder extends Seeder
             'update_booking',
             'accept_or_reject_booking',
             'view_event_bookings',
+
+            //calendar
+            'update_working_hours',
+            'add_time_off',
+            'update_time_off',
+            'delete_time_off',
+            'calendar_view',
+
         ];
 
         foreach ($permissions as $permission) {
@@ -56,6 +64,11 @@ class RolesAndPermissionsSeeder extends Seeder
             'delete_service',
             'view_bookings',
             'accept_or_reject_booking',
+            'update_working_hours',
+            'add_time_off',
+            'update_time_off',
+            'delete_time_off',
+            'calendar_view',
 
         ]);
 

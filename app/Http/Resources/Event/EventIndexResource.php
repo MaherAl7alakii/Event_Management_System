@@ -22,7 +22,7 @@ class EventIndexResource extends JsonResource
             'status'       => $this->status->value,
             'governorate_name' => $this->city?->governorate?->name,
             'city_name'    => $this->city?->name,
-            'service_count' => 5
+            'service_count' => $this->bookings()->count(),
         ];
     }
 }

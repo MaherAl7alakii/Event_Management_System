@@ -9,7 +9,7 @@ Route::middleware('setLanguage')->group(function () {
     Route::get('/services', [ServiceController::class, 'index'])->name('services.index');
 
     Route::get('/service_provider/services', [ServiceController::class, 'index'])
-        ->middleware(['auth:api', 'verified.email','provider.approved'])
+        ->middleware(['auth:api', 'verified.email','provider.approved','check.banned'])
         ->name('services.index');
 
     Route::get('/services/pricing-types', function() {
@@ -25,7 +25,7 @@ Route::middleware('setLanguage')->group(function () {
 
     Route::get('services/search/suggestions', [ServiceController::class, 'searchSuggestions']);
 
-    Route::middleware(['auth:api', 'verified.email','provider.approved'])->group(function () {
+    Route::middleware(['auth:api', 'verified.email','provider.approved','check.banned'])->group(function () {
         Route::post('/services', [ServiceController::class, 'store'])->middleware('permission:create_service');;
         Route::put('/services/{service}', [ServiceController::class, 'update'])->middleware('permission:update_service');;
         Route::delete('/services/{service}', [ServiceController::class, 'destroy']);

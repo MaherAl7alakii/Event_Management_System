@@ -22,13 +22,13 @@ class DatabaseSeeder extends Seeder
 
 
         $this->call([
-            UserSeeder::class,
             GovernorateSeeder::class,
             CitySeeder::class,
             CategorySeeder::class,
+            UserSeeder::class,
             ServiceSeeder::class,
             EventTypeSeeder::class,
-            ServiceProviderSeeder::class,
+//            ServiceProviderSeeder::class,
             WorkingHoursSeeder::class,
         ]);
         // User::factory(10)->create();

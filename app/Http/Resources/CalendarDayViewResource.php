@@ -19,6 +19,7 @@ class CalendarDayViewResource extends JsonResource
             return [
                 'booking_id'            => $booking['id'],
                 'title'         => $booking['service']['title'] ?? '',
+                'status'         => $booking['status'],
                 'customer_name' => $booking['customer']['name'] ?? '',
                 'city_name'      => $booking['service']['city']['name']  ?? '',
                 'governorate_name' => $booking['service']['city']['governorate']['name'] ?? '',

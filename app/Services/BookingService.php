@@ -21,16 +21,16 @@ class BookingService
     public function getUserBookings($user, ?string $status)
     {
         return Booking::with(['service', 'customer', 'provider'])
-            ->where(function ($query) use ($user) {
-                $query->where('customer_id', $user->id)
-                    ->orWhere(function ($q) use ($user) {
-                        $q->where('provider_id', $user->id)
-                            ->where('status', '!=', BookingStatus::DRAFT->value);
-                    });
+            ->where('status', '!=', BookingStatus::DRAFT->value)
+            ->unless($user->hasRole('admin'), function ($query) use ($user) {
+                $query->where(function ($q) use ($user) {
+                    $q->where('customer_id', $user->id)
+                        ->orWhere('provider_id', $user->id);
+                });
             })
             ->ofStatus($status)
             ->latest()
-            ->paginate(15);
+            ->paginate(20);
     }
 
     public function getBookingsByEvent(Event $event, ?string $status)

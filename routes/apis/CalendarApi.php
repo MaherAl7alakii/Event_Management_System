@@ -6,18 +6,18 @@ use Illuminate\Support\Facades\Route;
 
 
 
-Route::prefix('provider')->middleware(['auth:api','verified.email','setLanguage','provider.approved'])->group(function () {
+Route::prefix('provider')->middleware(['auth:api','verified.email','setLanguage','provider.approved','check.banned'])->group(function () {
 
    Route::get('/working-hours',[CalendarController::class,'getWorkingHours']);
-   Route::Put('/working-hours',[CalendarController::class,'updateWorkingHours']);
+   Route::Put('/working-hours',[CalendarController::class,'updateWorkingHours'])->middleware('permission:update_working_hours');
 
-    Route::get('/calendar', [CalendarController::class, 'getDayView']);
-    Route::get('/calendar/month', [CalendarController::class, 'getMonthOverview']);
-    
+    Route::get('/calendar', [CalendarController::class, 'getDayView'])->middleware('permission:calendar_view');
+    Route::get('/calendar/month', [CalendarController::class, 'getMonthOverview'])->middleware('permission:calendar_view');
 
-    Route::post('/time-offs', [CalendarController::class, 'storeTimeOff']);
-    Route::put('/time-offs/{timeOff}', [CalendarController::class, 'updateTimeOff']);
-    Route::delete('/time-offs/{timeOff}', [CalendarController::class, 'destroyTimeOff']);
+
+    Route::post('/time-offs', [CalendarController::class, 'storeTimeOff'])->middleware('permission:add_time_off');
+    Route::put('/time-offs/{timeOff}', [CalendarController::class, 'updateTimeOff'])->middleware('permission:update_time_off');
+    Route::delete('/time-offs/{timeOff}', [CalendarController::class, 'destroyTimeOff'])->middleware('permission:delete_time_off');
 
     Route::get('/time-offs/reasons', function () {
         return response()->json([

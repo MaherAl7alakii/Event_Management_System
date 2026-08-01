@@ -2,6 +2,11 @@
 
 namespace Database\Seeders;
 
+use App\Models\Category;
+use App\Models\Portfolio;
+use App\Models\Profile;
+use App\Models\ServiceProvider;
+use App\Models\ServiceProviderDocument;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
@@ -50,19 +55,30 @@ class UserSeeder extends Seeder
                 $provider->assignRole($providerRole);
                 $provider->syncPermissions($providerRole->permissions()->pluck('name')->toArray());
             }
+            $randomCategories = Category::inRandomOrder()->take(rand(1, 3))->get();
+            ServiceProvider::factory()
+                ->has(ServiceProviderDocument::factory()->count(2), 'documents')
+                ->has(Portfolio::factory()->count(2), 'portfolios')
+                ->hasAttached($randomCategories, [], 'categories')
+                ->create([
+                    'user_id' => $provider->id,
+                ]);
         }
+
+
+
 
 
         $customerRole = Role::where('name', 'customer')->first();
         for ($i = 1; $i <= 10; $i++) {
-            $customer = User::updateOrCreate(
-                ['email' => "customer{$i}@gmail.com"],
-                [
+            $customer = User::factory()
+                ->has(Profile::factory())
+                ->create([
                     'name'              => "Customer {$i}",
+                    'email'             => "customer{$i}@gmail.com",
                     'password'          => $defaultPassword,
                     'email_verified_at' => $now,
-                ]
-            );
+                ]);
 
             if ($customerRole) {
                 $customer->assignRole($customerRole);

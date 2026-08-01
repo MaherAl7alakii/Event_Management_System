@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreServiceProviderRequest;
 use App\Http\Requests\UpdateServiceProviderRequest;
 use App\Http\Resources\ServiceProviderResource;
+use App\Http\Resources\User\ProviderIndexResource;
+use App\Models\ServiceProvider;
 use App\Services\ServiceProviderService;
 use App\Traits\ResponseTrait;
 use Illuminate\Http\JsonResponse;

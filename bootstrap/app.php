@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\CheckBannedMiddleware;
 use App\Http\Middleware\EnsureProviderIsApproved;
 use App\Http\Middleware\SetLanguage;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
@@ -32,6 +33,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => RoleMiddleware::class,
             'permission' => PermissionMiddleware::class,
             'role_or_permission' => RoleOrPermissionMiddleware::class,
+            'check.banned' => CheckBannedMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

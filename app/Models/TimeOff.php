@@ -4,10 +4,10 @@ namespace App\Models;
 
 use App\Enums\TimeOffReason;
 use App\Enums\TimeOffType;
+use App\Support\TimeSpan;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
-
 
 class TimeOff extends Model
 {
@@ -28,8 +28,7 @@ class TimeOff extends Model
             'type'       => TimeOffType::class,
             'start_date' => 'date',
             'end_date'   => 'date',
-            'reason' => TimeOffReason::class,
-
+            'reason'     => TimeOffReason::class,
         ];
     }
 
@@ -37,7 +36,6 @@ class TimeOff extends Model
     {
         return $this->belongsTo(ServiceProvider::class);
     }
-
 
     public function scopeOverlapping(Builder $query, Carbon $from, Carbon $to): Builder
     {
@@ -58,9 +56,7 @@ class TimeOff extends Model
             return true;
         }
 
-
-        $blockStart = Carbon::parse($this->start_date->toDateString() . ' ' . $this->start_time);
-        $blockEnd = Carbon::parse($this->start_date->toDateString() . ' ' . $this->end_time);
+        [$blockStart, $blockEnd] = $this->blockTimeWindow();
 
         return $from->lt($blockEnd) && $to->gt($blockStart);
     }
@@ -72,17 +68,15 @@ class TimeOff extends Model
             return $this->dateRangesOverlap($other);
         }
 
-
-        if ($this->start_date->toDateString() !== $other->start_date->toDateString()) {
-            return false;
-        }
-
-        $thisStart = Carbon::parse($this->start_date->toDateString() . ' ' . $this->start_time);
-        $thisEnd = Carbon::parse($this->start_date->toDateString() . ' ' . $this->end_time);
-        $otherStart = Carbon::parse($other->start_date->toDateString() . ' ' . $other->start_time);
-        $otherEnd = Carbon::parse($other->start_date->toDateString() . ' ' . $other->end_time);
+        [$thisStart, $thisEnd] = $this->blockTimeWindow();
+        [$otherStart, $otherEnd] = $other->blockTimeWindow();
 
         return $thisStart->lt($otherEnd) && $thisEnd->gt($otherStart);
+    }
+
+    private function blockTimeWindow(): array
+    {
+        return TimeSpan::resolve($this->start_date, $this->start_time, $this->end_time);
     }
 
     private function dateRangesOverlap(self $other): bool

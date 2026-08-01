@@ -8,7 +8,6 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
 
-
 class TimeOffRequest extends FormRequest
 {
     public function authorize(): bool
@@ -31,30 +30,28 @@ class TimeOffRequest extends FormRequest
 
             'end_date' => [
                 Rule::excludeIf($isBlockTime),
-                Rule::requiredIf(!$isBlockTime),
+//                Rule::requiredIf(! $isBlockTime),
                 'date',
                 'after_or_equal:start_date',
             ],
 
             'start_time' => [
                 Rule::requiredIf($isBlockTime),
-                Rule::excludeIf(!$isBlockTime),
+                Rule::excludeIf(! $isBlockTime),
                 'date_format:H:i',
             ],
 
             'end_time' => [
                 Rule::requiredIf($isBlockTime),
-                Rule::excludeIf(!$isBlockTime),
+                Rule::excludeIf( !$isBlockTime),
                 'date_format:H:i',
-                'after:start_time',
+                Rule::when($isBlockTime, ['different:start_time']),
             ],
 
             'reason' => ['required', Rule::enum(TimeOffReason::class)],
             'note'   => ['nullable', 'string', 'max:1000'],
         ];
     }
-
-
 
     public function validated($key = null, $default = null): array
     {
@@ -73,5 +70,4 @@ class TimeOffRequest extends FormRequest
     {
         return $this->input('type') === TimeOffType::BLOCK_TIME->value;
     }
-
 }
