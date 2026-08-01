@@ -15,6 +15,18 @@ class ServiceShowResource extends JsonResource
     public function toArray(Request $request): array
     {
         $user = auth('api')->user();
+        $offer = $this->offer;
+
+if (
+    $offer &&
+    (
+        !$offer->is_active ||
+        now()->lt($offer->start_date) ||
+        now()->gt($offer->end_date)
+    )
+) {
+    $offer = null;
+}
         $isProvider = $user && $user->hasRole('service_provider') && $user->id === $this->provider_id;
         $translations = $this->translations->mapWithKeys(function ($translation) {
             return [
@@ -57,7 +69,14 @@ class ServiceShowResource extends JsonResource
             'title'             => $this->when(! $isProvider, $this->title),
             'description'       => $this->when(! $isProvider, $this->description),
             'address'           => $this->when(! $isProvider, $this->address),
-
+'offer' => $offer ? [
+    'id' => $offer->id,
+    'discount' => $offer->discount,
+    'original_price' => $offer->original_price,
+    'offer_price' => $offer->offer_price,
+    'start_date' => $offer->start_date,
+    'end_date' => $offer->end_date,
+] : null,
 
             'images' => $this->images->map(function ($image) {
                 return [

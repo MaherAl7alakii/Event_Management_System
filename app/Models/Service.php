@@ -152,7 +152,10 @@ class Service extends Model
 
 
 
-
+public function offer()
+{
+    return $this->hasOne(ServiceOffer::class);
+}
 
 
 
