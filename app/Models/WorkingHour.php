@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Support\TimeSpan;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 class WorkingHour extends Model
 {
@@ -19,13 +21,17 @@ class WorkingHour extends Model
         return [
             'day_of_week' => 'integer',
             'is_active'   => 'boolean',
-//            'start_time'  => 'datetime',
-//            'end_time'    => 'datetime',
         ];
     }
 
     public function serviceProvider()
     {
         return $this->belongsTo(ServiceProvider::class);
+    }
+
+
+    public function windowFor(Carbon $calendarDate): array
+    {
+        return TimeSpan::resolve($calendarDate, $this->start_time, $this->end_time);
     }
 }

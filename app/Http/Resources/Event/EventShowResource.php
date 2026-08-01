@@ -30,6 +30,7 @@ class EventShowResource extends JsonResource
             'guests_count'       => (int) $this->guests_count,
             'status'             => $this->status->value,
             'action_button'      => $this->action_button_meta['action'],
+            'service_count' => $this->bookings()->count(),
             'submitted_at'       => $this->submitted_at?->format('Y-m-d H:i:s'),
             'confirmed_at'       => $this->confirmed_at?->format('Y-m-d H:i:s'),
         ];

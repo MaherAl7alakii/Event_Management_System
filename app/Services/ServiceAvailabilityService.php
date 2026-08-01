@@ -17,7 +17,6 @@ class ServiceAvailabilityService
     ) {
     }
 
-
     public function isAvailable(
         Service $service,
         string $bookingDate,
@@ -27,7 +26,6 @@ class ServiceAvailabilityService
     ): bool {
         return $this->unavailabilityReason($service, $bookingDate, $startTime, $duration, $excludeBookingId) === null;
     }
-
 
     public function unavailabilityReason(
         Service $service,
@@ -51,11 +49,9 @@ class ServiceAvailabilityService
             return 'time_off_conflict';
         }
 
-
         if ($this->hasBookingConflict($service, $requestedStart, $requestedEnd, $excludeBookingId)) {
             return 'booking_conflict';
         }
-
 
         return null;
     }
@@ -63,7 +59,6 @@ class ServiceAvailabilityService
 
     public function isDateAvailable(Service $service, string $bookingDate): bool
     {
-
         if (! $service->is_active) {
             return false;
         }
@@ -71,42 +66,42 @@ class ServiceAvailabilityService
         $date = Carbon::parse($bookingDate);
         $serviceProviderId = $this->resolveServiceProviderId($service);
 
-
-        $worksOnDay = WorkingHour::query()
+        return WorkingHour::query()
             ->where('service_provider_id', $serviceProviderId)
             ->where('day_of_week', $date->dayOfWeek)
             ->where('is_active', true)
             ->exists();
-
-        if (! $worksOnDay) {
-            return false;
-        }
-
-
-
-        return true;
     }
-
 
 
     private function withinWorkingHours(Service $service, Carbon $start, Carbon $end): bool
     {
         $serviceProviderId = $this->resolveServiceProviderId($service);
 
-        $workingHour = WorkingHour::query()
+        $candidateWorkingHours = WorkingHour::query()
             ->where('service_provider_id', $serviceProviderId)
-            ->where('day_of_week', $start->dayOfWeek)
             ->where('is_active', true)
-            ->first();
+            ->whereIn('day_of_week', [
+                $start->copy()->subDay()->dayOfWeek,
+                $start->dayOfWeek,
+            ])
+            ->get();
 
-        if (! $workingHour) {
-            return false;
+        foreach ($candidateWorkingHours as $workingHour) {
+            $anchors = $workingHour->day_of_week === $start->dayOfWeek
+                ? [$start]
+                : [$start->copy()->subDay()];
+
+            foreach ($anchors as $anchor) {
+                [$workStart, $workEnd] = $workingHour->windowFor($anchor);
+
+                if ($start->gte($workStart) && $end->lte($workEnd)) {
+                    return true;
+                }
+            }
         }
 
-        $workStart = Carbon::parse($start->toDateString() . ' ' . $workingHour->start_time);
-        $workEnd = Carbon::parse($start->toDateString() . ' ' . $workingHour->end_time);
-
-        return $start->gte($workStart) && $end->lte($workEnd);
+        return false;
     }
 
 
@@ -134,6 +129,7 @@ class ServiceAvailabilityService
             ->linkedServiceIdsFor($service->id)
             ->push($service->id);
 
+
         $logicalRequestedEnd = $requestedStart->eq($requestedEnd)
             ? $requestedStart->copy()->addMinute()
             : $requestedEnd;
@@ -141,14 +137,17 @@ class ServiceAvailabilityService
         $candidateBookings = Booking::query()
             ->whereIn('service_id', $relevantServiceIds)
             ->whereIn('status', $this->blockingBookingStatuses())
-            ->whereDate('booking_date', $requestedStart->toDateString())
+            ->whereBetween('booking_date', [
+                $requestedStart->copy()->subDay()->toDateString(),
+                $requestedStart->toDateString(),
+            ])
             ->when($excludeBookingId, fn ($q) => $q->where('id', '!=', $excludeBookingId))
             ->get();
 
         foreach ($candidateBookings as $existingBooking) {
             $existingStart = $existingBooking->startsAt();
-
             $existingEnd = $existingBooking->endsAtWithBuffer();
+
             $logicalExistingEnd = $existingStart->eq($existingEnd)
                 ? $existingStart->copy()->addMinute()
                 : $existingEnd;
@@ -161,7 +160,6 @@ class ServiceAvailabilityService
         return false;
     }
 
-
     private function blockingBookingStatuses(): array
     {
         return [
@@ -171,7 +169,6 @@ class ServiceAvailabilityService
             BookingStatus::CONFIRMED->value,
         ];
     }
-
 
 
     private function resolveServiceProviderId(Service $service): int
