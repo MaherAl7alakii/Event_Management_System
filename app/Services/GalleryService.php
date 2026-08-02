@@ -254,5 +254,12 @@ class GalleryService
         }
 
     }
+    public function categories(int $serviceProviderId)
+{
+    return ServiceProviderCategory::with('category')
+        ->where('service_provider_id', $serviceProviderId)
+        ->get()
+        ->pluck('category');
+}
 
 }
