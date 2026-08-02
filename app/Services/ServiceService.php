@@ -17,7 +17,7 @@ class ServiceService
     {
         $user = auth('api')->user();
 
-        $services = Service::with(['category', 'city.governorate', 'images'])
+        $services = Service::with(['category', 'city.governorate', 'images','offer'])
             ->when($user?->hasRole('admin'), function ($query) {
                 return $query;
             }, function ($query) use ($user) {
@@ -48,7 +48,7 @@ class ServiceService
     public function getService(Service $service)
     {
 
-        return $service->load('features');
+        return $service->load('features','offer');
     }
 
 

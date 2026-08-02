@@ -15,7 +15,18 @@ class ServiceIndexResource extends JsonResource
     public function toArray(Request $request): array
     {
         $primaryImage = $this->images->where('is_primary', true)->first() ?? $this->images->first();
+$offer = $this->offer;
 
+if (
+    $offer &&
+    (
+        !$offer->is_active ||
+        now()->lt($offer->start_date) ||
+        now()->gt($offer->end_date)
+    )
+) {
+    $offer = null;
+}
         return [
             'id'               => $this->id,
             'title'            => $this->title,
@@ -31,7 +42,13 @@ class ServiceIndexResource extends JsonResource
             'governorate_name' => $this->city?->governorate?->name,
             'city_id'          => $this->city_id,
             'city_name'        => $this->city?->name,
-            'image'            => $primaryImage?->url
+            'image'            => $primaryImage?->url,
+  'offer' => $offer ? [
+    'id' => $offer->id,
+    'discount' => $offer->discount,
+    'offer_price' => $offer->offer_price,
+    'original_price' => $offer->original_price,
+] : null,
         ];
     }
 }
