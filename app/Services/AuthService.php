@@ -66,55 +66,99 @@ class AuthService
             'token' => $token,
         ];
     }
-    public function login(array $data)
-    {
+//     public function login(array $data)
+//     {
 
-        if (!Auth::attempt(['email' => $data['email'], 'password' => $data['password']])) {
-            throw new AuthenticationException('Email or Password is incorrect.');
+//         if (!Auth::attempt(['email' => $data['email'], 'password' => $data['password']])) {
+//             throw new AuthenticationException('Email or Password is incorrect.');
 
-        }
+//         }
 
-        $user = User::where('email', $data['email'])->first();
-        if (!$user->email_verified_at) {
-    throw new AuthenticationException(
-        'Please verify your email first.'
-    );
-}
+//         $user = User::where('email', $data['email'])->first();
+//         if (!$user->email_verified_at) {
+//     throw new AuthenticationException(
+//         'Please verify your email first.'
+//     );
+// }
 
-         if (!(
-            (request()->is('*admin*') && $user->hasRole('admin')) ||
-            (request()->is('*customer*') && $user->hasRole('customer')) ||
-            (request()->is('*service_provider*') && $user->hasRole('service_provider'))
-        )) {
-           throw new UnauthorizedException();
-        }
-
-
-
-        $tokenRequest = Request::create('/oauth/token', 'POST', [
-            'grant_type' => 'password',
-            'client_id' => config('services.passport.client_id'),
-            'client_secret' => config('services.passport.client_secret'),
-            'username' => $data['email'],
-            'password' => $data['password'],
-            'scope' => '',
-        ]);
+//          if (!(
+//             (request()->is('*admin*') && $user->hasRole('admin')) ||
+//             (request()->is('*customer*') && $user->hasRole('customer')) ||
+//             (request()->is('*service_provider*') && $user->hasRole('service_provider'))
+//         )) {
+//            throw new UnauthorizedException();
+//         }
 
 
-        $response = app()->handle($tokenRequest);
 
-        if (!$response->isSuccessful()) {
-            throw new AuthenticationException('Client authentication failed');
+//         $tokenRequest = Request::create('/oauth/token', 'POST', [
+//             'grant_type' => 'password',
+//             'client_id' => config('services.passport.client_id'),
+//             'client_secret' => config('services.passport.client_secret'),
+//             'username' => $data['email'],
+//             'password' => $data['password'],
+//             'scope' => '',
+//         ]);
 
-        }
 
-        $token = json_decode($response->getContent(), true);
+//         $response = app()->handle($tokenRequest);
 
-        return $token;
+//         if (!$response->isSuccessful()) {
+//             throw new AuthenticationException('Client authentication failed');
+
+//         }
+
+//         $token = json_decode($response->getContent(), true);
+
+//         return $token;
+//     }
+
+
+public function login(array $data)
+{
+    if (!Auth::attempt(['email' => $data['email'], 'password' => $data['password']])) {
+        throw new AuthenticationException('Email or Password is incorrect.');
     }
 
+    $user = User::where('email', $data['email'])->first();
 
+    if (!$user->email_verified_at) {
+        throw new AuthenticationException('Please verify your email first.');
+    }
 
+    if (!(
+        (request()->is('*admin*') && $user->hasRole('admin'))||
+        (request()->is('*customer*') && $user->hasRole('customer'))||
+        (request()->is('*service_provider*') && $user->hasRole('service_provider'))
+    )) {
+        throw new UnauthorizedException();
+    }
+
+    $tokenRequest = Request::create('/oauth/token', 'POST', [
+        'grant_type' => 'password',
+        'client_id' => config('services.passport.client_id'),
+        'client_secret' => config('services.passport.client_secret'),
+        'username' => $data['email'],
+        'password' => $data['password'],
+        'scope' => '',
+    ]);
+
+    $response = app()->handle($tokenRequest);
+
+    if (!$response->isSuccessful()) {
+        throw new AuthenticationException('Client authentication failed');
+    }
+
+    $token = json_decode($response->getContent(), true);
+
+    
+    $providerId = $user->serviceProvider?->id;
+
+    return [
+        'token'       => $token,
+        'provider_id' => $providerId,
+    ];
+}
     public function loginWithGoogle(string $googleToken)
     {
 
