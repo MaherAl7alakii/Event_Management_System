@@ -17,6 +17,7 @@ class ProviderIndexResource extends JsonResource
         $provider = $this->serviceProvider;
         return [
             'id' => $this->id,
+            'service_provider_id' => $provider->id,
             'name' => $this->name,
             'email' => $this->email,
             'role' => $this->getRoleNames()->first(),
