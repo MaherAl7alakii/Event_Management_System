@@ -44,7 +44,10 @@ class ServiceProviderController extends Controller
     public function store(StoreServiceProviderRequest $request): JsonResponse
     {
         $data = $request->validated();
-        $provider = $this->providerService->updateOrCreateProvider(auth()->id(), $data);
+        $isCreate = false;
+        if($request->routeIs('provider.store'))
+            $isCreate = true;
+        $provider = $this->providerService->updateOrCreateProvider(auth()->id(), $data,$isCreate);
 
         return $this->apiResponse(
             new ServiceProviderResource($this->providerService->getProviderByUserId(auth()->id())),
