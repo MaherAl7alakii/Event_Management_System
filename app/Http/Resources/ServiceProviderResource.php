@@ -25,16 +25,22 @@ class ServiceProviderResource extends JsonResource
             'governorate'=>new GovernorateResource($this->city->governorate),
             'account_type' => $this->account_type,
             'business_name' => $this->business_name,
-            'avatar' => $this->avatar ? asset('storage/' . $this->avatar) : null,
+            'avatar' => $this->avatar
+             ? (str_starts_with($this->avatar, 'http')
+             ? $this->avatar
+             : asset('storage/' . $this->avatar))
+             : null,
             'phone' => $this->phone,
             'address' => $this->address,
             'approval_status' => $this->approval_status,
             'years_of_experience' => $this->years_of_experience,
             'description' => $this->description,
             'verified_at' => $this->verified_at,
-            'rejection_reason' => $this->rejection_reason,
-//            'main_service' => new CategoryResource($this->whenLoaded('mainService')),
-            'categories' => ServiceProviderCategoryResource::collection($this->whenLoaded('categories')),
+            'rejection_reason' => $this->when(
+             $this->approval_status === 'rejected',
+             $this->rejection_reason),
+            'categories' => CategoryResource::collection(
+             $this->whenLoaded('categories')),
             'documents' => ServiceProviderDocumentResource::collection($this->whenLoaded('documents')),
             'portfolios' => PortfolioResource::collection($this->whenLoaded('portfolios')),
             'created_at' => $this->created_at,
