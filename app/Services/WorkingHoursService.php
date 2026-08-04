@@ -18,7 +18,7 @@ class WorkingHoursService
             foreach (range(0, 6) as $day) {
                 $isFriday = ($day === 5);
 
-                $provider->workingHours()->create([
+                $provider->workingHours()->updateOrCreate([
                     'day_of_week' => $day,
                     'is_active'   => ! $isFriday,
                     'start_time'  => $isFriday ? '00:00:00' : '09:00:00',

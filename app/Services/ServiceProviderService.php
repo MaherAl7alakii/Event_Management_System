@@ -17,7 +17,7 @@ class ServiceProviderService
     {
         $this->workingHoursService = $workingHoursService;
     }
-    public function updateOrCreateProvider(int $userId, array $data)
+    public function updateOrCreateProvider(int $userId, array $data,bool $isCreate)
     {
         if (isset($data['avatar']) && $data['avatar'] instanceof \Illuminate\Http\UploadedFile) {
             $provider = ServiceProvider::where('user_id', $userId)->first();
@@ -45,10 +45,7 @@ $data['avatar'] = $data['avatar']->storeAs(
         );
 
         if (isset($data["categories"])) {
-            $provider->categories()->delete();
-            foreach ($data["categories"] as $categoryId) {
-                $provider->categories()->create(["category_id" => $categoryId]);
-            }
+           $provider->categories()->sync($data["categories"]);
         }
 
         if (isset($data["documents"])) {
@@ -65,13 +62,16 @@ $data['avatar'] = $data['avatar']->storeAs(
             }
         }
 
-        $this->workingHoursService->createDefaultWorkingHours($provider);
+        if($isCreate)
+            $this->workingHoursService->createDefaultWorkingHours($provider);
+
+
 
         return $provider;
     }
 
     public function getProviderByUserId(int $userId)
     {
-        return ServiceProvider::with(['user', 'city.governorate', 'categories.category', 'documents', 'portfolios'])->where('user_id', $userId)->first();
+        return ServiceProvider::with(['user', 'city.governorate', 'categories', 'documents', 'portfolios'])->where('user_id', $userId)->first();
     }
 }
