@@ -72,6 +72,8 @@ $data['avatar'] = $data['avatar']->storeAs(
 
     public function getProviderByUserId(int $userId)
     {
-        return ServiceProvider::with(['user', 'city.governorate', 'categories', 'documents', 'portfolios'])->where('user_id', $userId)->first();
+        return ServiceProvider::with(['user', 'city.governorate', 'categories', 'documents', 'portfolios','workingHours'])->withAvg('reviews', 'rating')
+->withCount('reviews')->where('user_id', $userId)->first();
     }
+   
 }

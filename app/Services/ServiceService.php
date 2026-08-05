@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Service;
 use App\Models\ServiceTranslation;
+use App\Models\ServiceProvider;
 use Illuminate\Support\Facades\DB;
 
 class ServiceService
@@ -275,5 +276,23 @@ class ServiceService
         }
     }
 
+public function getProviderCategoryServices($request, $providerId, $categoryId)
+{
+    $provider = ServiceProvider::findOrFail($providerId);
 
+    return Service::query()
+        ->where('provider_id', $provider->user_id)
+        ->where('category_id', $categoryId)
+        ->where('is_active', true)
+        ->with([
+            'translations',
+            'category',
+            'city.governorate',
+            'images',
+            'offer'
+        ])
+        ->paginate(
+            $request->get('per_page', 10)
+        );
+}
 }

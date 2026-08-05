@@ -67,4 +67,5 @@ class ServiceProviderController extends Controller
             Response::HTTP_OK
         );
     }
+  
 }

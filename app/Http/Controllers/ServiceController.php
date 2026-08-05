@@ -130,4 +130,14 @@ class ServiceController extends Controller
             Response::HTTP_OK
         );
     }
+    public function providerCategoryServices(Request $request,$provider,$category)
+{
+    $services = $this->serviceService->getProviderCategoryServices($request,$provider,$category);
+
+    return $this->apiResponse(
+        ServiceResource::collection($services),
+        'Provider category services retrieved successfully',
+        Response::HTTP_OK
+    );
+}
 }
