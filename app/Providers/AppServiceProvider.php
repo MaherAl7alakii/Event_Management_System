@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Passport\Passport;
 use Stripe\StripeClient;
+use GuzzleHttp\Client;
+use GuzzleHttp\ClientInterface;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,6 +21,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(StripeClient::class, function ($app) {
             return new StripeClient(config('services.stripe.secret'));
         });
+
+        $this->app->bind(ClientInterface::class, Client::class);
     }
 
     /**

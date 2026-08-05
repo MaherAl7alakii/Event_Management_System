@@ -50,7 +50,7 @@ class AuthController extends Controller
 
     public function login(LoginRequest $request): JsonResponse
     {
-        $data = $request->only('email', 'password');
+        $data = $request->only('email', 'password','fcm_token');
         $token = $this->authService->login($data);
 
         return $this->apiResponse(
@@ -64,8 +64,9 @@ class AuthController extends Controller
     {
 
         $googleToken = $request->input('google_token');
+        $fcmToken = $request->input('fcm_token');
 
-        $user = $this->authService->loginWithGoogle($googleToken);
+        $user = $this->authService->loginWithGoogle($googleToken,$fcmToken);
 
         return $this->apiResponse(
             [

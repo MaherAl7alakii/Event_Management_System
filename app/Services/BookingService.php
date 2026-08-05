@@ -7,6 +7,8 @@ use App\Exceptions\ServiceUnavailableException;
 use App\Models\Booking;
 use App\Models\Event;
 use App\Models\Service;
+use App\Notifications\BookingAcceptedNotification;
+use App\Notifications\BookingRejectedNotification;
 use Illuminate\Support\Facades\DB;
 
 class BookingService
@@ -15,6 +17,7 @@ class BookingService
         private readonly EventStatusResolver $statusResolver,
         private readonly ServiceAvailabilityService $availability,
         private readonly BookingDeadlineCalculator $deadlines,
+        private readonly NotificationDispatcher $notifier,
     ) {
     }
 
@@ -130,8 +133,13 @@ class BookingService
 
             $this->statusResolver->resolveAndPersist($booking->event);
 
-            //---- Notification ----
         });
+
+        match ($action) {
+            'accept' => $this->notifier->dispatch(new BookingAcceptedNotification($booking)),
+            'reject' => $this->notifier->dispatch(new BookingRejectedNotification($booking)),
+            default  => null,
+        };
 
         return $booking->fresh(['service', 'customer', 'provider', 'event.city.governorate']);
     }

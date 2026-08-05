@@ -127,6 +127,19 @@ class User extends Authenticatable
     }
 
 
+
+    public function syncFcmToken(string $fcmToken): UserFcmToken
+    {
+        UserFcmToken::where('fcm_token', $fcmToken)
+            ->where('user_id', '!=', $this->id)
+            ->delete();
+
+        return $this->fcmTokens()->updateOrCreate(
+            ['fcm_token' => $fcmToken]
+        );
+    }
+
+
     public function validateForPassportPasswordGrant($password)
     {
         if (request()->input('is_social') === true) {
@@ -174,8 +187,14 @@ class User extends Authenticatable
         return $this->hasMany(Booking::class, 'provider_id');
     }
 
-public function reviews()
-{
-    return $this->hasMany(Review::class);
-}
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
+
+
+    public function fcmTokens()
+    {
+        return $this->hasMany(UserFcmToken::class);
+    }
 }
