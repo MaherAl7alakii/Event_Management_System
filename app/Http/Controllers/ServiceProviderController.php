@@ -68,4 +68,12 @@ class ServiceProviderController extends Controller
         );
     }
   
+    public function setupProgress(): JsonResponse
+{
+    return $this->apiResponse(
+        $this->providerService->getSetupProgress(),
+        'Business setup progress fetched successfully.',
+        Response::HTTP_OK
+    );
+}
 }
