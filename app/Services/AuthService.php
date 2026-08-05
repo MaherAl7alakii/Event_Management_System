@@ -115,7 +115,12 @@ class AuthService
 
         $token = json_decode($response->getContent(), true);
 
-        return $token;
+        $providerId = $user->serviceProvider?->id;
+
+        return [
+            'token'       => $token,
+            'provider_id' => $providerId,
+        ];
     }
 
 

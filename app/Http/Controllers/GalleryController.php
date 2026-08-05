@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Gallery\StoreGalleryRequest;
 use App\Http\Requests\Gallery\UpdateGalleryRequest;
 use App\Http\Resources\GalleryResource;
+use App\Http\Resources\CategoryResource;
 use App\Models\ServiceProviderGallery;
 use App\Services\GalleryService;
 use App\Traits\ResponseTrait;
@@ -120,4 +121,14 @@ class GalleryController extends Controller
             Response::HTTP_OK
         );
     }
+    public function categories(int $serviceProviderId): JsonResponse
+{
+    $categories = $this->galleryService->categories($serviceProviderId);
+
+    return $this->apiResponse(
+        CategoryResource::collection($categories),
+        'Gallery categories retrieved successfully.',
+        Response::HTTP_OK
+    );
+}
 }

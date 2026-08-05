@@ -16,6 +16,10 @@ Route::get(
 );
 
 
+Route::get(
+    '/service-providers/{serviceProvider}/gallery/categories',
+    [GalleryController::class, 'categories']
+);
 
 Route::middleware([
     'auth:api',
