@@ -26,18 +26,10 @@ class PackageController extends Controller
     }
 
 
-
-
-
    public function store(StorePackageRequest $request): JsonResponse
 {
 
-    $package = $this->packageService
-        ->create(
-            $request->validated()
-        );
-
-
+    $package = $this->packageService->create($request->validated());
     return $this->apiResponse(
         new PackageResource($package),
         'Package created successfully.',
@@ -47,25 +39,9 @@ class PackageController extends Controller
 }
 
 
-
-
-
-
-
-
-    public function update(
-    UpdatePackageRequest $request,
-    Package $package
-): JsonResponse
+    public function update(UpdatePackageRequest $request,Package $package): JsonResponse
 {
-
-    $package = $this->packageService
-        ->update(
-            $package,
-            $request->validated()
-        );
-
-
+    $package = $this->packageService->update($package,$request->validated());
     return $this->apiResponse(
         new PackageResource($package),
         'Package updated successfully.',
@@ -75,18 +51,9 @@ class PackageController extends Controller
 }
 
 
-
-
-    public function destroy(
-        Package $package
-    ): JsonResponse
+    public function destroy(Package $package): JsonResponse
     {
-
-        $this->packageService
-            ->delete($package);
-
-
-
+        $this->packageService->delete($package);
         return $this->apiResponse(
             null,
             'Package deleted successfully.',
@@ -96,22 +63,9 @@ class PackageController extends Controller
     }
 
 
-
-
-
-
-
-
-    public function index(
-        $provider
-    ): JsonResponse
+    public function index($provider): JsonResponse
     {
-
-        $packages = $this->packageService
-            ->index($provider);
-
-
-
+        $packages = $this->packageService->index($provider);
         return $this->apiResponse(
             PackageResource::collection($packages),
             'Packages retrieved successfully.',
@@ -121,22 +75,9 @@ class PackageController extends Controller
     }
 
 
-
-
-
-
-
-
-    public function show(
-        Package $package
-    ): JsonResponse
+    public function show(Package $package): JsonResponse
     {
-
-        $package = $this->packageService
-            ->show($package);
-
-
-
+        $package = $this->packageService->show($package);
         return $this->apiResponse(
             new PackageResource($package),
             'Package retrieved successfully.',

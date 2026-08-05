@@ -15,24 +15,13 @@ return new class extends Migration
 
         $table->id();
 
+        $table->foreignId('package_id')->constrained()->cascadeOnDelete();
 
-        $table->foreignId('package_id')
-            ->constrained()
-            ->cascadeOnDelete();
-
-
-        $table->foreignId('service_id')
-            ->constrained()
-            ->cascadeOnDelete();
-
+        $table->foreignId('service_id')->constrained()->cascadeOnDelete();
 
         $table->timestamps();
 
-
-        $table->unique([
-            'package_id',
-            'service_id'
-        ]);
+        $table->unique(['package_id','service_id']);
 
     });
 }

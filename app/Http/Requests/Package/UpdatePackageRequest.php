@@ -28,7 +28,6 @@ class UpdatePackageRequest extends FormRequest
 
             'status' => 'nullable|in:active,hidden',
 
-
             'service_ids' => 'nullable|array',
 
             'service_ids.*' => 'exists:services,id',

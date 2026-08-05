@@ -176,9 +176,6 @@ public function scopeWithActiveOffer($query)
 
 public function packages()
 {
-    return $this->belongsToMany(
-        Package::class,
-        'package_service'
-    );
+    return $this->belongsToMany(Package::class,'package_service');
 }
 }

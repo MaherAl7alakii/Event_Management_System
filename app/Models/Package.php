@@ -26,20 +26,14 @@ class Package extends Model
 
     public function provider()
     {
-        return $this->belongsTo(
-            ServiceProvider::class,
-            'service_provider_id'
-        );
+        return $this->belongsTo(ServiceProvider::class,'service_provider_id');
     }
 
 
 
     public function services()
     {
-        return $this->belongsToMany(
-            Service::class,
-            'package_service'
-        );
+        return $this->belongsToMany(Service::class,'package_service');
     }
 
 }

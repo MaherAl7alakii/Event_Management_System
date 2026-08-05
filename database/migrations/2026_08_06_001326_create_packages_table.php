@@ -13,10 +13,7 @@ return new class extends Migration
 
             $table->id();
 
-            $table->foreignId('service_provider_id')
-                ->constrained()
-                ->cascadeOnDelete();
-
+            $table->foreignId('service_provider_id')->constrained()->cascadeOnDelete();
 
             $table->string('image')->nullable();
 
@@ -24,24 +21,13 @@ return new class extends Migration
 
             $table->text('description')->nullable();
 
+            $table->decimal('total_price',10,2)->default(0);
 
-            $table->decimal('total_price',10,2)
-                ->default(0);
+            $table->decimal('discount',5,2)->default(0);
 
+            $table->decimal('final_price',10,2)->default(0);
 
-            $table->decimal('discount',5,2)
-                ->default(0);
-
-
-            $table->decimal('final_price',10,2)
-                ->default(0);
-
-
-            $table->enum('status',[
-                'active',
-                'hidden'
-            ])->default('active');
-
+            $table->enum('status',['active','hidden'])->default('active');
 
             $table->timestamps();
 

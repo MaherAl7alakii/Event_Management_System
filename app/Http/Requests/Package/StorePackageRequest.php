@@ -28,7 +28,6 @@ class StorePackageRequest extends FormRequest
 
             'status' => 'nullable|in:active,hidden',
 
-
             'service_ids' => 'required|array|min:1',
 
             'service_ids.*' => 'required|exists:services,id',
