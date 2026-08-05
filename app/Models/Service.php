@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Builder;
+use Carbon\Carbon;
 
 class Service extends Model
 {
@@ -154,10 +155,17 @@ class Service extends Model
 
 public function offer()
 {
-    return $this->hasOne(ServiceOffer::class);
+    return $this->hasOne(ServiceOffer::class, 'service_id');
 }
 
 
+public function scopeWithActiveOffer($query)
+{
+    return $query->whereHas('offer', function ($q) {
 
+        $q->where('is_active', true)->whereDate('start_date', '<=', today())->whereDate('end_date', '>=', today());
+
+    });
+}
 
 }

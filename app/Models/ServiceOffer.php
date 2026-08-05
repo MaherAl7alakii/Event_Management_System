@@ -22,8 +22,8 @@ class ServiceOffer extends Model
         'is_active'=>'boolean'
     ];
 
-    public function service()
-    {
-        return $this->belongsTo(Service::class);
-    }
+public function service()
+{
+    return $this->belongsTo(Service::class);
+}
 }

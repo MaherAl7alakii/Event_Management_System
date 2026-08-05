@@ -25,12 +25,16 @@ class ServiceProviderResource extends JsonResource
             'governorate'=>new GovernorateResource($this->city->governorate),
             'account_type' => $this->account_type,
             'business_name' => $this->business_name,
+            'rating' => round($this->reviews_avg_rating ?? 0, 1),
+            'reviews_count' => $this->reviews_count ?? 0,
             'avatar' => $this->avatar
              ? (str_starts_with($this->avatar, 'http')
              ? $this->avatar
              : asset('storage/' . $this->avatar))
              : null,
             'phone' => $this->phone,
+            'working_hours' => WorkingHourResource::collection(
+             $this->whenLoaded('workingHours')),
             'address' => $this->address,
             'approval_status' => $this->approval_status,
             'years_of_experience' => $this->years_of_experience,

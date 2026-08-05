@@ -12,6 +12,8 @@ Route::middleware(['auth:api','check.banned'])->group(function () {
 });
 
 
+
+
 Route::middleware(['auth:api','role:admin'])->prefix('admin')->group(function(){
     Route::put('/service-providers/{serviceProvider}/approve',[ServiceProviderApprovalController::class,'approve']);
     Route::put('/service-providers/{serviceProvider}/reject',[ServiceProviderApprovalController::class,'reject']);

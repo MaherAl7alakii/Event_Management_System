@@ -10,7 +10,10 @@ class OfferResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
+
             'id' => $this->id,
+
+            'service_id' => $this->service_id,
 
             'discount' => $this->discount,
 
@@ -18,13 +21,14 @@ class OfferResource extends JsonResource
 
             'offer_price' => $this->offer_price,
 
-            'start_date' => $this->start_date->format('Y-m-d'),
+            'start_date' => optional($this->start_date)
+                ->format('Y-m-d'),
 
-            'end_date' => $this->end_date->format('Y-m-d'),
+            'end_date' => optional($this->end_date)
+                ->format('Y-m-d'),
 
             'is_active' => $this->is_active,
 
-            
         ];
     }
 }

@@ -11,29 +11,28 @@ class OfferService
     /**
      * Create Offer
      */
-    public function create(Service $service, int $userId, array $data): ServiceOffer
-    {
-        $this->checkOwner($service, $userId);
+  public function create(Service $service, int $userId, array $data): ServiceOffer
+{
+    $this->checkOwner($service, $userId);
 
-        if ($service->offer) {
-            throw new HttpException(409, 'This service already has an offer.');
-        }
+    if ($service->offer()->exists()) {
+        throw new HttpException(409, 'This service already has an offer.');
+    }
 
-        $offerPrice = $this->calculateOfferPrice(
+
+    return ServiceOffer::create([
+        'service_id' => $service->id,
+        'discount' => $data['discount'],
+        'original_price' => $service->base_price,
+        'offer_price' => $this->calculateOfferPrice(
             $service->base_price,
             $data['discount']
-        );
-
-        return ServiceOffer::create([
-            'service_id'      => $service->id,
-            'discount'        => $data['discount'],
-            'original_price'  => $service->base_price,
-            'offer_price'     => $offerPrice,
-            'start_date'      => $data['start_date'],
-            'end_date'        => $data['end_date'],
-            'is_active'       => true,
-        ]);
-    }
+        ),
+        'start_date' => $data['start_date'],
+        'end_date' => $data['end_date'],
+        'is_active' => true,
+    ]);
+}
 
     /**
      * Update Offer
@@ -87,8 +86,8 @@ class OfferService
 {
     $offer = $service->offer()
         ->where('is_active', true)
-        ->where('start_date', '<=', now())
-        ->where('end_date', '>=', now())
+        ->whereDate('start_date', '<=', today())
+        ->whereDate('end_date', '>=', today())
         ->first();
 
 

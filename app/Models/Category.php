@@ -20,4 +20,8 @@ class Category extends Model
 {
     return $this->hasMany(ServiceProviderGallery::class);
 }
+ public function providers()
+    {
+        return $this->belongsToMany(User::class,'services','category_id','provider_id')->distinct();
+    }
 }
