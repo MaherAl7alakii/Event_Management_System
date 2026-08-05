@@ -6,8 +6,7 @@ use Illuminate\Support\Facades\Route;
 
  Route::get('/offers/{service}', [OfferController::class, 'show']);
 
-Route::middleware(['auth:api','provider.approved'])
-->group(function () {
+Route::middleware(['auth:api','check.banned','provider.approved'])->group(function () {
 
     Route::post('/offers/{service}', [OfferController::class, 'store']);
 

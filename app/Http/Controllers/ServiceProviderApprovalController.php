@@ -24,11 +24,7 @@ class ServiceProviderApprovalController extends Controller
 
     public function approve(ServiceProvider $serviceProvider)
     {
-
-        $provider = $this->approvalService
-            ->approve($serviceProvider);
-
-
+        $provider = $this->approvalService->approve($serviceProvider);
         return $this->apiResponse(
             $provider,
             "Service provider approved successfully",
@@ -38,20 +34,9 @@ class ServiceProviderApprovalController extends Controller
 
 
 
-
-
-    public function reject(
-        RejectServiceProviderRequest $request,
-        ServiceProvider $serviceProvider
-    ){
-
-        $provider = $this->approvalService
-            ->reject(
-                $serviceProvider,
-                $request->reason
-            );
-
-
+    public function reject(RejectServiceProviderRequest $request,ServiceProvider $serviceProvider)
+    {
+        $provider = $this->approvalService->reject($serviceProvider,$request->reason);
         return $this->apiResponse(
             $provider,
             "Service provider rejected successfully",
@@ -62,12 +47,7 @@ class ServiceProviderApprovalController extends Controller
 public function resubmit()
 {
     $provider = auth()->user()->serviceProvider;
-
-
-    $provider = $this->approvalService
-        ->resubmit($provider);
-
-
+    $provider = $this->approvalService->resubmit($provider);
     return $this->apiResponse(
         $provider,
         "Service provider resubmitted successfully",

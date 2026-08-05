@@ -26,17 +26,10 @@ class PortfolioController extends Controller
     }
 
 
-
-    /**
-     * Get service provider portfolios
-     * Customer + Provider can view
-     */
   public function index(ServiceProvider $serviceProvider): JsonResponse
 {
     $portfolios = $this->portfolioService
         ->getProviderPortfolios($serviceProvider->id);
-
-
     return $this->apiResponse(
         PortfolioResource::collection($portfolios),
         'Portfolios fetched successfully.',
@@ -46,16 +39,10 @@ class PortfolioController extends Controller
 
 
 
-    /**
-     * Store new portfolio
-     * Provider only
-     */
 public function store(StorePortfolioRequest $request): JsonResponse
 {
     $user = auth()->user();
-
     $serviceProvider = ServiceProvider::where('user_id', $user->id)->first();
-
     if (!$serviceProvider) {
         return $this->apiResponse(
             null,
@@ -64,14 +51,7 @@ public function store(StorePortfolioRequest $request): JsonResponse
         );
     }
 
-
-    $portfolio = $this->portfolioService
-        ->createPortfolio(
-            $serviceProvider->id,
-            $request->validated()
-        );
-
-
+    $portfolio = $this->portfolioService->createPortfolio($serviceProvider->id,$request->validated());
     return $this->apiResponse(
         new PortfolioResource($portfolio),
         'Portfolio created successfully.',
@@ -80,12 +60,9 @@ public function store(StorePortfolioRequest $request): JsonResponse
 }
 
 
-    /**
-     * Show single portfolio
-     */
+    
     public function show(Portfolio $portfolio): JsonResponse
     {
-
         return $this->apiResponse(
             new PortfolioResource($portfolio),
             'Portfolio fetched successfully.',
@@ -94,28 +71,10 @@ public function store(StorePortfolioRequest $request): JsonResponse
 
     }
 
-
-
-    /**
-     * Update portfolio
-     * Provider only
-     */
-    public function update(
-        UpdatePortfolioRequest $request,
-        Portfolio $portfolio
-    ): JsonResponse {
-
-
+    public function update(UpdatePortfolioRequest $request,Portfolio $portfolio): JsonResponse
+     {
         $this->checkOwnership($portfolio);
-
-
-        $portfolio = $this->portfolioService
-            ->updatePortfolio(
-                $portfolio,
-                $request->validated()
-            );
-
-
+        $portfolio = $this->portfolioService->updatePortfolio($portfolio,$request->validated());
         return $this->apiResponse(
             new PortfolioResource($portfolio),
             'Portfolio updated successfully.',
@@ -125,22 +84,10 @@ public function store(StorePortfolioRequest $request): JsonResponse
 
 
 
-
-    /**
-     * Delete portfolio
-     * Provider only
-     */
     public function destroy(Portfolio $portfolio): JsonResponse
     {
-
         $this->checkOwnership($portfolio);
-
-
-        $this->portfolioService
-            ->deletePortfolio($portfolio);
-
-
-
+        $this->portfolioService->deletePortfolio($portfolio);
         return $this->apiResponse(
             null,
             'Portfolio deleted successfully.',
@@ -151,22 +98,11 @@ public function store(StorePortfolioRequest $request): JsonResponse
 
 
 
-
-    /**
-     * Make sure provider owns this portfolio
-     */
   private function checkOwnership(Portfolio $portfolio)
 {
-    $serviceProvider = ServiceProvider::where(
-        'user_id',
-        auth()->id()
-    )->first();
+    $serviceProvider = ServiceProvider::where('user_id',auth()->id())->first();
 
-
-    if (!$serviceProvider ||
-        $portfolio->service_provider_id !== $serviceProvider->id
-    ) {
-
+    if (!$serviceProvider ||$portfolio->service_provider_id !== $serviceProvider->id) {
         abort(
             Response::HTTP_FORBIDDEN,
             'You are not allowed to modify this portfolio.'
