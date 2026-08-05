@@ -4,9 +4,10 @@ namespace App\Services;
 
 use App\Enums\BookingStatus;
 use App\Enums\EventStatus;
-//use App\Events\BookingsSubmittedToProviders;
+use App\Exceptions\NoDraftBookingsToSubmitException;
 use App\Models\Booking;
 use App\Models\Event;
+use App\Notifications\BookingsSubmittedToProvidersNotification;
 use Exception;
 use Illuminate\Support\Facades\DB;
 
@@ -16,6 +17,7 @@ class EventSubmissionService
     public function __construct(
         private readonly PaymentGatewayService $gatewayService,
         private readonly EventStatusResolver $statusResolver,
+        private readonly NotificationDispatcher $notifier,
     ) {
     }
 
@@ -65,7 +67,7 @@ class EventSubmissionService
                 ->get();
 
             if ($draftBookings->isEmpty()) {
-                throw new Exception("Event #{$event->id} has no draft bookings to submit.");
+                throw new NoDraftBookingsToSubmitException("Event #{$event->id} has no draft bookings to submit.");
             }
 
             Booking::where('event_id', $event->id)
@@ -77,8 +79,7 @@ class EventSubmissionService
 
             $event->refresh();
             $updatedEvent = $this->statusResolver->resolveAndPersist($event);
-
-//            BookingsSubmittedToProviders::dispatch($draftBookings->fresh());
+            $this->notifier->dispatch(new BookingsSubmittedToProvidersNotification($draftBookings->fresh()));
 
             return $updatedEvent;
         });

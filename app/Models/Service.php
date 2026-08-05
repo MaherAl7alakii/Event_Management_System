@@ -72,10 +72,16 @@ class Service extends Model
             ->when($filters['min_rating'] ?? null, function ($query, $minRating) {
                 $query->where('rating', '>=', $minRating);
             })
+            ->when($filters['service_provider_id'] ?? null, function ($query, $serviceProviderId) {
+                $query->whereHas('provider.serviceProvider', function ($q) use ($serviceProviderId) {
+                    $q->where('id', $serviceProviderId);
+                });
+            })
             ->when(isset($filters['is_active']), function ($query) use ($filters) {
                 $isActive = filter_var($filters['is_active'], FILTER_VALIDATE_BOOLEAN);
                 $query->where('is_active', $isActive);
             });
+
     }
 
 

@@ -23,6 +23,9 @@ return [
     'user_unbanned_success'      => 'تم إلغاء حظر المستخدم بنجاح.',
     'account_banned' => 'تم حظر حسابك. يرجى التواصل مع الدعم الفني.',
 
+    'marked_all_read_success' => 'تم تحديد جميع :resource كـ مقروءة بنجاح.',
+    'deleted_all_success'     => 'تم حذف جميع :resource بنجاح.',
+
 
 
 
@@ -80,6 +83,9 @@ return [
 
         'customers'    => 'الزبائن',
         'service_providers' => 'مزودي الخدمة',
+
+        'notification'  => 'الإشعار',
+        'notifications' => 'الإشعارات',
 
     ]
 ];

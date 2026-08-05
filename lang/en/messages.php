@@ -31,6 +31,11 @@ return [
     'account_banned' => 'Your account has been banned. Please contact support.',
 
 
+
+    'marked_all_read_success' => 'All :resource marked as read successfully.',
+    'deleted_all_success'     => 'All :resource deleted successfully.',
+
+
     'validation' => [
         'at_least_one' => 'You must provide service details in at least one language (Arabic or English).',
         'features' => [
@@ -84,5 +89,8 @@ return [
 
         'customers'    => 'customers',
         'service_providers' => 'Service providers',
+
+        'notification'  => 'Notification',
+        'notifications' => 'Notifications',
     ]
 ];

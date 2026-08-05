@@ -23,6 +23,7 @@ class LoginWithGoogleRequest extends FormRequest
     {
         return [
             'google_token' => 'required|string',
+            'fcm_token' => 'required|string',
         ];
     }
 }

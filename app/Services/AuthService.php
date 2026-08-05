@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Mail\OtpMail;
 use App\Models\User;
+use App\Models\UserFcmToken;
 use Illuminate\Http\Request;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\Auth;
@@ -39,6 +40,8 @@ class AuthService
             $user->assignRole($role);
             $permissions = $role->permissions->pluck('name')->toArray();
             $user->givePermissionTo($permissions);
+
+            $user->syncFcmToken($data['fcm_token']);
 
             DB::commit();
     } catch (\Exception $e) {
@@ -108,6 +111,8 @@ class AuthService
 
         }
 
+        $user->syncFcmToken($data['fcm_token']);
+
         $token = json_decode($response->getContent(), true);
 
         return $token;
@@ -115,7 +120,7 @@ class AuthService
 
 
 
-    public function loginWithGoogle(string $googleToken)
+    public function loginWithGoogle(string $googleToken , string $fcmToken)
     {
 
         $client = new \Google_Client(['client_id' => config('services.google.client_id')]);
@@ -197,6 +202,8 @@ class AuthService
         if (!$response->isSuccessful()) {
             throw new AuthenticationException('Client authentication failed');
         }
+
+        $user->syncFcmToken($fcmToken);
 
         $token = json_decode($response->getContent(), true);
 
