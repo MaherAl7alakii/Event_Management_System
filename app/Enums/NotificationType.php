@@ -32,10 +32,9 @@ enum NotificationType: string
     public function subjectResource(): ?string
     {
         return match ($this) {
-            self::NEW_BOOKING => BookingShowResource::class,
-
+            self::NEW_BOOKING ,
             self::BOOKING_ACCEPTED,
-            self::BOOKING_REJECTED => EventShowResource::class ,
+            self::BOOKING_REJECTED => BookingShowResource::class,
 
             default => null,
         };
