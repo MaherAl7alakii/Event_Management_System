@@ -59,7 +59,7 @@ class ServiceProviderController extends Controller
     public function update(UpdateServiceProviderRequest $request): JsonResponse
     {
         $data = $request->validated();
-        $provider = $this->providerService->updateOrCreateProvider(auth()->id(), $data);
+        $provider = $this->providerService->updateOrCreateProvider(auth()->id(), $data, false);
 
         return $this->apiResponse(
             new ServiceProviderResource($this->providerService->getProviderByUserId(auth()->id())),
@@ -68,4 +68,12 @@ class ServiceProviderController extends Controller
         );
     }
   
+    public function setupProgress(): JsonResponse
+{
+    return $this->apiResponse(
+        $this->providerService->getSetupProgress(),
+        'Business setup progress fetched successfully.',
+        Response::HTTP_OK
+    );
+}
 }

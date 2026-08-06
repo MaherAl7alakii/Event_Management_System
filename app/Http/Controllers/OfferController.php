@@ -21,9 +21,7 @@ class OfferController extends Controller
         $this->offerService = $offerService;
     }
 
-    /**
-     * Create Offer
-     */
+    
     public function store(StoreOfferRequest $request, Service $service): JsonResponse
     {
         $offer = $this->offerService->create($service,auth()->id(),$request->validated());
@@ -35,9 +33,7 @@ class OfferController extends Controller
 );
     }
 
-    /**
-     * Show Offer
-     */
+    
     public function show(Service $service): JsonResponse
     {
         $offer = $this->offerService->show($service);
@@ -49,9 +45,7 @@ class OfferController extends Controller
 );
     }
 
-    /**
-     * Update Offer
-     */
+   
     public function update(StoreOfferRequest $request, Service $service): JsonResponse
     {
         $offer = $this->offerService->update($service,auth()->id(),$request->validated());
@@ -63,9 +57,7 @@ class OfferController extends Controller
 );
     }
 
-    /**
-     * Delete Offer
-     */
+   
     public function destroy(Service $service): JsonResponse
     {
         $this->offerService->delete($service,auth()->id());

@@ -30,17 +30,9 @@ class ReviewController extends Controller
 
 
 
-    public function store(
-        StoreReviewRequest $request
-    )
+    public function store(StoreReviewRequest $request)
     {
-
-        $review = $this->reviewService->create(
-            auth()->id(),
-            $request->validated()
-        );
-
-
+        $review = $this->reviewService->create(auth()->id(),$request->validated());
         return $this->apiResponse(
             new ReviewResource($review),
             'Review created successfully.',
@@ -52,19 +44,9 @@ class ReviewController extends Controller
 
 
 
-    public function update(
-        UpdateReviewRequest $request,
-        Review $review
-    )
+    public function update(UpdateReviewRequest $request,Review $review)
     {
-
-        $review = $this->reviewService->update(
-            auth()->id(),
-            $review,
-            $request->validated()
-        );
-
-
+        $review = $this->reviewService->update(auth()->id(),$review,$request->validated());
        return $this->apiResponse(
     new ReviewResource($review),
     'Review updated successfully.',
@@ -75,17 +57,9 @@ class ReviewController extends Controller
 
 
 
-    public function destroy(
-        Review $review
-    )
+    public function destroy(Review $review)
     {
-
-        $this->reviewService->delete(
-            auth()->id(),
-            $review
-        );
-
-
+        $this->reviewService->delete(auth()->id(),$review);
        return $this->apiResponse(
     null,
     'Review deleted successfully.',
@@ -96,16 +70,9 @@ class ReviewController extends Controller
 
 
 
-
-    public function index(
-    int $serviceProvider
-)
+    public function index(int $serviceProvider)
 {
-
-    $data = $this->reviewService
-        ->providerReviews($serviceProvider);
-
-
+    $data = $this->reviewService->providerReviews($serviceProvider);
     return $this->apiResponse(
         [
             'average_rating' => $data['average_rating'],

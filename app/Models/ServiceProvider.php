@@ -84,4 +84,8 @@ public function reviews()
 {
     return $this->hasMany(Review::class);
 }
+public function packages()
+{
+    return $this->hasMany(Package::class);
+}
 }
