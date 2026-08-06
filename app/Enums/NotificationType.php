@@ -21,10 +21,9 @@ enum NotificationType: string
     public function subjectModel(): ?string
     {
         return match ($this) {
-            self::NEW_BOOKING => Booking::class,
-
+            self::NEW_BOOKING ,
             self::BOOKING_REJECTED,
-            self::BOOKING_ACCEPTED,=> Event::class,
+            self::BOOKING_ACCEPTED,=> Booking::class,
 
         };
     }
