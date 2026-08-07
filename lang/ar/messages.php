@@ -27,6 +27,11 @@ return [
     'deleted_all_success'     => 'تم حذف جميع :resource بنجاح.',
 
 
+    'cannot_message_self'  => 'لا يمكنك إنشاء محادثة مع نفسك.',
+    'marked_read_success'  => 'تم تعليم الرسائل كمقروءة بنجاح.',
+    'typing_broadcasted'   => 'تم إرسال حالة الكتابة بنجاح.',
+
+
 
 
     'validation' => [
@@ -86,6 +91,11 @@ return [
 
         'notification'  => 'الإشعار',
         'notifications' => 'الإشعارات',
+
+        'conversation'  => 'المحادثة',
+        'conversations' => 'المحادثات',
+        'message'       => 'الرسالة',
+        'messages'      => 'الرسائل',
 
     ]
 ];
