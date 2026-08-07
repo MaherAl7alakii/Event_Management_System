@@ -10,9 +10,9 @@ use App\Models\Event;
 
 enum NotificationType: string
 {
-    case NEW_BOOKING               = 'new_booking';
-    case BOOKING_ACCEPTED          = 'booking_accepted';
-    case BOOKING_REJECTED          = 'booking_rejected';
+    case NEW_BOOKING          = 'new_booking';
+    case BOOKING_ACCEPTED     = 'booking_accepted';
+    case BOOKING_REJECTED     = 'booking_rejected';
 
 
 

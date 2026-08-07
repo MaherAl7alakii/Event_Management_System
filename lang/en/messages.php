@@ -36,6 +36,11 @@ return [
     'deleted_all_success'     => 'All :resource deleted successfully.',
 
 
+    'cannot_message_self'  => 'You cannot start a conversation with yourself.',
+    'marked_read_success'  => 'Messages marked as read successfully.',
+    'typing_broadcasted'   => 'Typing status broadcasted successfully.',
+
+
     'validation' => [
         'at_least_one' => 'You must provide service details in at least one language (Arabic or English).',
         'features' => [
@@ -92,5 +97,10 @@ return [
 
         'notification'  => 'Notification',
         'notifications' => 'Notifications',
+
+        'conversation'  => 'Conversation',
+        'conversations' => 'Conversations',
+        'message'       => 'Message',
+        'messages'      => 'Messages',
     ]
 ];
