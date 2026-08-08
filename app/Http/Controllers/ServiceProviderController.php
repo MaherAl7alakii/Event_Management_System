@@ -8,6 +8,7 @@ use App\Http\Resources\ServiceProviderResource;
 use App\Http\Resources\User\ProviderIndexResource;
 use App\Models\ServiceProvider;
 use App\Services\ServiceProviderService;
+use App\Http\Resources\UserServiceProviderResource;
 use App\Traits\ResponseTrait;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -73,6 +74,24 @@ class ServiceProviderController extends Controller
     return $this->apiResponse(
         $this->providerService->getSetupProgress(),
         'Business setup progress fetched successfully.',
+        Response::HTTP_OK
+    );
+}
+public function showById(int $id): JsonResponse
+{
+    $provider = $this->providerService->getProviderById($id);
+
+    if (!$provider) {
+        return $this->apiResponse(
+            null,
+            'Service provider not found.',
+            Response::HTTP_NOT_FOUND
+        );
+    }
+
+    return $this->apiResponse(
+        new UserServiceProviderResource($provider),
+        'Service provider fetched successfully.',
         Response::HTTP_OK
     );
 }

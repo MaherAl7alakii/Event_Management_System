@@ -35,6 +35,6 @@ Route::middleware('setLanguage')->group(function () {
 
 
 Route::get('/service-providers/{provider}/categories/{category}/services',[ServiceController::class, 'providerCategoryServices']);
-
+Route::get('/service-providers/{provider}/offers',[ServiceController::class, 'providerOfferServices']);
 
 });

@@ -10,6 +10,7 @@ Route::middleware(['auth:api','check.banned'])->group(function () {
     Route::post('service-provider/update', [ServiceProviderController::class, 'update']);
     Route::post('/service-provider/resubmit',[ServiceProviderApprovalController::class,'resubmit']);
     Route::get('service-provider/setup-progress', [ServiceProviderController::class, 'setupProgress']);
+    Route::get('service-providers/{id}',[ServiceProviderController::class, 'showById']);
 });
 
 
