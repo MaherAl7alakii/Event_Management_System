@@ -7,6 +7,7 @@ use App\Http\Requests\WorkingHoursRequest;
 use App\Http\Resources\CalendarDayViewResource;
 use App\Http\Resources\TimeOffResource;
 use App\Http\Resources\WorkingHourResource;
+use App\Models\ServiceProvider;
 use App\Models\TimeOff;
 use App\Services\CalendarService;
 use App\Services\WorkingHoursService;
@@ -40,6 +41,20 @@ class CalendarController extends Controller
 
         return $this->apiResponse(
             $workingHours->isNotEmpty() ? ['days' => WorkingHourResource::collection($workingHours)] : null,
+            $workingHours->isEmpty()
+                ? __('messages.empty', ['resource' => __($this->workingHoursResourceName)])
+                : __('messages.fetched_success', ['resource' => __($this->workingHoursResourceName)]),
+            Response::HTTP_OK
+        );
+    }
+
+
+    public function getWorkingHoursByProvider(ServiceProvider $provider): JsonResponse
+    {
+        $workingHours = $provider->workingHours()->orderBy('day_of_week')->get();
+
+        return $this->apiResponse(
+            $workingHours->isNotEmpty() ? ['service_provider_id' => $provider->id,'days' => WorkingHourResource::collection($workingHours)] : null,
             $workingHours->isEmpty()
                 ? __('messages.empty', ['resource' => __($this->workingHoursResourceName)])
                 : __('messages.fetched_success', ['resource' => __($this->workingHoursResourceName)]),
