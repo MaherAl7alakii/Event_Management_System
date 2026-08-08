@@ -18,4 +18,8 @@ return [
         'message_multiple' => 'You have :count new booking requests.',
     ],
 
+    'message_sent' => [
+        'title' => 'New message from :sender',
+    ],
+
 ];

@@ -9,10 +9,15 @@ use App\Events\MessageUpdated;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\User;
+use App\Notifications\MessageSentNotification;
 use Illuminate\Support\Facades\DB;
 
 class MessageService
 {
+    public function __construct(
+        private readonly NotificationDispatcher $notifier,
+    ) {
+    }
 
     public function getMessages(Conversation $conversation)
     {
@@ -43,6 +48,7 @@ class MessageService
         $message->load('sender');
 
         broadcast(new MessageSent($message))->toOthers();
+        $this->notifier->dispatch(new MessageSentNotification($message));
 
         return $message;
     }

@@ -21,19 +21,18 @@ class ConversationResource extends JsonResource
                 'avatar'    => $otherUser->hasRole('customer')
                     ? $otherUser->profile?->avatar
                     : $otherUser->serviceProvider?->avatar,
-                'last_seen_at'  => $otherUser->last_seen_at?->format("Y-m-d H:i"),
+//                'last_seen_at'  => $otherUser->last_seen_at?->format("Y-m-d H:i"),
             ],
-            'last_message' => $this->whenLoaded('lastMessage', function () {
-                return [
-                    'id'         => $this->lastMessage->id,
-                    'type'       => $this->lastMessage->type,
-                    'preview'    => $this->buildPreview($this->lastMessage),
-                    'sender_id'  => $this->lastMessage->sender_id,
-                    'is_read'    => $this->lastMessage->isRead(),
-                    'time'       => $this->lastMessage->created_at?->format('H:i'),
-                    'date'       => $this->lastMessage->created_at?->format('Y-m-d'),
-                ];
-            }),
+            'last_message' => $this->lastMessage ? [
+                'id'         => $this->lastMessage->id,
+                'type'       => $this->lastMessage->type,
+                'preview'    => $this->buildPreview($this->lastMessage),
+                'sender_id'  => $this->lastMessage->sender_id,
+                'is_read'    => $this->lastMessage->isRead(),
+                'time'       => $this->lastMessage->created_at?->format('H:i'),
+                'date'       => $this->lastMessage->created_at?->format('Y-m-d'),
+            ] : null,
+
             'unread_count' => $this->when(
                 isset($this->unread_count),
                 fn () => $this->unread_count

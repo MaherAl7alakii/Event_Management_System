@@ -39,6 +39,7 @@ class NotificationController extends Controller
 
     public function show(Notification $notification)
     {
+//        $notification = Notification::query()->where('id' , 16)->first();
         $this->authorize('view', $notification);
 
         $notificationData = $this->notifications->readWithSubject($notification);
