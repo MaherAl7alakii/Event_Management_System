@@ -19,4 +19,8 @@ return [
         'message_multiple' => 'لديك :count طلبات حجز جديدة.',
     ],
 
+    'message_sent' => [
+        'title' => 'رسالة جديدة من :sender',
+    ],
+
 ];

@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('provider')->middleware(['auth:api','verified.email','setLanguage','provider.approved','check.banned'])->group(function () {
 
    Route::get('/working-hours',[CalendarController::class,'getWorkingHours']);
+   Route::get('/{provider}/working-hours', [CalendarController::class, 'getWorkingHoursByProvider']);
    Route::Put('/working-hours',[CalendarController::class,'updateWorkingHours'])->middleware('permission:update_working_hours');
 
     Route::get('/calendar', [CalendarController::class, 'getDayView'])->middleware('permission:calendar_view');
