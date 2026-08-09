@@ -140,4 +140,13 @@ class ServiceController extends Controller
         Response::HTTP_OK
     );
 }
+public function providerOfferServices(Request $request, $provider)
+{
+    $services = $this->serviceService->getProviderOfferServices($request,$provider);
+    return $this->apiResponse(
+        ServiceResource::collection($services),
+        'Provider offer services retrieved successfully',
+        Response::HTTP_OK
+    );
+}
 }

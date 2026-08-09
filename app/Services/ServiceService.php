@@ -295,4 +295,28 @@ public function getProviderCategoryServices($request, $providerId, $categoryId)
             $request->get('per_page', 10)
         );
 }
+
+public function getProviderOfferServices($request, $providerId)
+{
+    $provider = ServiceProvider::findOrFail($providerId);
+
+    return Service::query()
+        ->where('provider_id', $provider->user_id)
+        ->where('is_active', true)
+        ->whereHas('offer', function ($query) {
+            $query->where('is_active', true)
+                ->where('start_date', '<=', now())
+                ->where('end_date', '>=', now());
+        })
+        ->with([
+            'translations',
+            'category',
+            'city.governorate',
+            'images',
+            'offer'
+        ])
+        ->paginate(
+            $request->get('per_page', 10)
+        );
+}
 }
