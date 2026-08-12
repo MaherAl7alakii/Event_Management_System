@@ -46,6 +46,7 @@ if (
                 'name' => $this->provider->serviceProvider->business_name,
                 'avatar' => $this->provider->serviceProvider->avatar,
             ],
+            'is_favorite' =>(bool) ($this->is_favorite ?? false),
             'pricing_type'      => $this->pricing_type->value,
             'pricing_type_view' => $this->pricing_type->view(),
             'base_price'        => $this->base_price,

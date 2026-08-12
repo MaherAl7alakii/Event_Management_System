@@ -17,6 +17,7 @@ class UserServiceProviderResource extends JsonResource
         return [
             'id' => $this->id,
             'business_name' => $this->business_name,
+            'is_favorite' => (bool) ($this->is_favorite ?? false),
             'avatar' => $this->avatar
                  ? (
                     str_starts_with($this->avatar, 'http')

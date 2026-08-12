@@ -34,6 +34,7 @@ class DatabaseSeeder extends Seeder
              ServiceProviderGallerySeeder::class,
               ReviewSeeder::class,
               PackageSeeder::class,
+               FavoriteSeeder::class,
         ]);
         // User::factory(10)->create();
 

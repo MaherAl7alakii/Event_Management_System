@@ -73,8 +73,19 @@ $data['avatar'] = $data['avatar']->storeAs(
 
     public function getProviderByUserId(int $userId)
     {
-        return ServiceProvider::with(['user', 'city.governorate', 'categories', 'documents', 'portfolios','workingHours'])->withAvg('reviews', 'rating')
-->withCount('reviews')->where('user_id', $userId)->first();
+        return ServiceProvider::with(['user', 'city.governorate', 'categories', 'documents', 'portfolios','workingHours'])
+->withAvg('reviews', 'rating')
+->withCount('reviews')
+->when(
+    auth('api')->check(),
+    function ($query) {
+        $query->withExists([
+            'favorites as is_favorite' => function ($q) {
+                $q->where('user_id', auth('api')->id());
+            },
+        ]);
+    }
+)->where('user_id', $userId)->first();
     }
    
     public function getSetupProgress(): array
@@ -146,6 +157,16 @@ public function getProviderById(int $providerId)
         'categories',
         'workingHours',
     ])
+        ->when(
+            auth('api')->check(),
+            function ($query) {
+                $query->withExists([
+                    'favorites as is_favorite' => function ($q) {
+                        $q->where('user_id', auth('api')->id());
+                    },
+                ]);
+            }
+        )
         ->withAvg('reviews', 'rating')
         ->withCount('reviews')
         ->where('id', $providerId)

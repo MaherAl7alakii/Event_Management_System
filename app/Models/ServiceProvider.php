@@ -5,7 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
-
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use App\Models\Favorite;
 class ServiceProvider extends Model
 {
     use HasFactory;
@@ -87,5 +88,9 @@ public function reviews()
 public function packages()
 {
     return $this->hasMany(Package::class);
+}
+public function favorites(): MorphMany
+{
+    return $this->morphMany(Favorite::class, 'favoritable');
 }
 }

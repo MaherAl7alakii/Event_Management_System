@@ -19,6 +19,7 @@ class ServiceResource extends JsonResource
                 'id' => $this->id,
                 'title' => $this->title,
                 'provider_name' => $this->provider->name,
+                'is_favorite' => (bool) ($this->is_favorite ?? false),
                 'base_price' => $this->base_price,
                 'rating' => (float)$this->rating,
                 'rating_count' => $this->rating_count,
@@ -38,6 +39,7 @@ class ServiceResource extends JsonResource
         $fullDetails = [
             'id' => $this->id,
             'provider_name' => $this->provider->name,
+            'is_favorite' => (bool) ($this->is_favorite ?? false),
             'pricing_type' => $this->pricing_type->value,
             'pricing_type_view' => $this->pricing_type->view(),
             'base_price' => $this->base_price,
