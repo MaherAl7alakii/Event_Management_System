@@ -30,6 +30,11 @@ class DatabaseSeeder extends Seeder
             EventTypeSeeder::class,
 //            ServiceProviderSeeder::class,
             WorkingHoursSeeder::class,
+             ServiceOfferSeeder::class,
+             ServiceProviderGallerySeeder::class,
+              ReviewSeeder::class,
+              PackageSeeder::class,
+               FavoriteSeeder::class,
         ]);
         // User::factory(10)->create();
 

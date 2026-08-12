@@ -24,6 +24,7 @@ class ServiceProviderResource extends JsonResource
             'city' => new CityResource($this->whenLoaded('city')),
             'governorate'=>new GovernorateResource($this->city->governorate),
             'account_type' => $this->account_type,
+             'is_favorite' =>(bool) ($this->is_favorite ?? false),
             'business_name' => $this->business_name,
             'rating' => round($this->reviews_avg_rating ?? 0, 1),
             'reviews_count' => $this->reviews_count ?? 0,

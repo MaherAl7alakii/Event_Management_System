@@ -32,6 +32,7 @@ if (
             'id'               => $this->id,
             'title'            => $this->title,
             'provider_name'    => $this->provider->serviceProvider->business_name,
+             'is_favorite' =>(bool) ($this->is_favorite ?? false),
             'base_price'       => $this->base_price,
             'rating'           => (float) $this->rating,
             'rating_count'     => $this->rating_count,

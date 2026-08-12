@@ -19,6 +19,16 @@ class ServiceService
         $user = auth('api')->user();
 
         $services = Service::with(['category', 'city.governorate', 'images','offer'])
+         ->when(
+                auth('api')->check(),
+                function ($query) {
+                    $query->withExists([
+                        'favorites as is_favorite' => function ($q) {
+                            $q->where('user_id', auth('api')->id());
+                        },
+                    ]);
+                }
+            )
             ->when($user?->hasRole('admin'), function ($query) {
                 return $query;
             }, function ($query) use ($user) {
@@ -49,7 +59,28 @@ class ServiceService
     public function getService(Service $service)
     {
 
-        return $service->load('features','offer');
+         $service->load([
+            'features',
+            'offer',
+            'category',
+            'city.governorate',
+            'images',
+            'provider.serviceProvider',
+        ]);
+
+        $user = auth('api')->user();
+
+        $service->setAttribute(
+        'is_favorite',
+        $user
+            ? $service->favorites()
+                ->where('user_id', $user->id)
+                ->exists()
+            : false
+    );
+
+
+        return $service;
     }
 
 
@@ -284,6 +315,21 @@ public function getProviderCategoryServices($request, $providerId, $categoryId)
         ->where('provider_id', $provider->user_id)
         ->where('category_id', $categoryId)
         ->where('is_active', true)
+        ->when(
+                auth('api')->check(),
+                function ($query) {
+
+                    $query->withExists([
+                        'favorites as is_favorite' => function ($q) {
+                            $q->where(
+                                'user_id',
+                                auth('api')->id()
+                            );
+                        },
+                    ]);
+                }
+            )
+
         ->with([
             'translations',
             'category',
@@ -308,6 +354,20 @@ public function getProviderOfferServices($request, $providerId)
                 ->where('start_date', '<=', now())
                 ->where('end_date', '>=', now());
         })
+        ->when(
+                auth('api')->check(),
+                function ($query) {
+
+                    $query->withExists([
+                        'favorites as is_favorite' => function ($q) {
+                            $q->where(
+                                'user_id',
+                                auth('api')->id()
+                            );
+                        },
+                    ]);
+                }
+            )
         ->with([
             'translations',
             'category',

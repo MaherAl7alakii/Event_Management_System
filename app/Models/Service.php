@@ -9,7 +9,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Builder;
 use Carbon\Carbon;
-
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use App\Models\Favorite;
 class Service extends Model
 {
     use HasFactory, SoftDeletes ;
@@ -177,5 +178,9 @@ public function scopeWithActiveOffer($query)
 public function packages()
 {
     return $this->belongsToMany(Package::class,'package_service');
+}
+public function favorites(): MorphMany
+{
+    return $this->morphMany(Favorite::class, 'favoritable');
 }
 }
