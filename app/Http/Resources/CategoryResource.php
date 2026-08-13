@@ -14,11 +14,26 @@ class CategoryResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $isAdmin = auth('api')->user()?->hasRole('admin');
+
         return [
             'id' => $this->id,
             'icon' => $this->icon,
-            'name' => $this->name
+            'is_active' => $this->is_active,
 
+            $this->mergeWhen($isAdmin, [
+                'en' => [
+                    'name' => $this->translations->where('locale', 'en')->first()?->name
+                ],
+                'ar' => [
+                    'name' => $this->translations->where('locale', 'ar')->first()?->name
+                ],
+            ]),
+
+
+            $this->mergeWhen(!$isAdmin, [
+                'name' => $this->name
+            ]),
         ];
     }
 }

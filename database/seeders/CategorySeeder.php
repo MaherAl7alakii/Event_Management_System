@@ -14,44 +14,44 @@ class CategorySeeder extends Seeder
     public function run(): void
     {
 
-        $categories = [
+        $categories =[
             [
-                'icon' => 'camera',
+                'icon' => 'https://res.cloudinary.com/dqf3h5hcs/image/upload/v1783347392/car-rental_uitffw.svg',
                 'ar'   => ['name' => 'مصور فوتوغرافي'],
                 'en'   => ['name' => 'Photographer'],
             ],
             [
-                'icon' => 'venue',
+                'icon' => 'https://res.cloudinary.com/dqf3h5hcs/image/upload/v1783347392/car-rental_uitffw.svg',
                 'ar'   => ['name' => 'قاعة فعاليات'],
                 'en'   => ['name' => 'Venue'],
             ],
             [
-                'icon' => 'music',
+                'icon' => 'https://res.cloudinary.com/dqf3h5hcs/image/upload/v1783347392/car-rental_uitffw.svg',
                 'ar'   => ['name' => 'موسيقى ودي جي'],
                 'en'   => ['name' => 'Music & DJ'],
             ],
             [
-                'icon' => 'decoration',
+                'icon' => 'https://res.cloudinary.com/dqf3h5hcs/image/upload/v1783347392/car-rental_uitffw.svg',
                 'ar'   => ['name' => 'زينة وديكور'],
                 'en'   => ['name' => 'Decoration'],
             ],
             [
-                'icon' => 'dessert',
+                'icon' => 'https://res.cloudinary.com/dqf3h5hcs/image/upload/v1783347392/car-rental_uitffw.svg',
                 'ar'   => ['name' => 'حلويات وقوالب كيك'],
                 'en'   => ['name' => 'Desserts'],
             ],
             [
-                'icon' => 'catering',
+                'icon' => 'https://res.cloudinary.com/dqf3h5hcs/image/upload/v1783347392/car-rental_uitffw.svg',
                 'ar'   => ['name' => 'ضيافة وبوفيه'],
                 'en'   => ['name' => 'Catering'],
             ],
             [
-                'icon' => 'makeup',
+                'icon' => 'https://res.cloudinary.com/dqf3h5hcs/image/upload/v1783347392/car-rental_uitffw.svg',
                 'ar'   => ['name' => 'خبيرة تجميل'],
                 'en'   => ['name' => 'Makeup Artist'],
             ],
             [
-                'icon' => 'car',
+                'icon' => 'https://res.cloudinary.com/dqf3h5hcs/image/upload/v1783347392/car-rental_uitffw.svg',
                 'ar'   => ['name' => 'تأجير سيارات'],
                 'en'   => ['name' => 'Car Rental'],
             ],
