@@ -9,7 +9,7 @@ class Category extends Model
 {
 
     use Translatable;
-    protected $fillable = ['icon'];
+    protected $fillable = ['icon', 'is_active'];
 
     public $translatedAttributes = ['name'];
     public function services()

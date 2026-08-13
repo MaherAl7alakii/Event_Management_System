@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
-            $table->string('icon')->unique();
+            $table->string('icon');
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
 
@@ -24,6 +25,7 @@ return new class extends Migration
 
             $table->string('name');
 
+            $table->unique(['locale', 'name']);
             $table->unique(['category_id', 'locale']);
         });
     }
