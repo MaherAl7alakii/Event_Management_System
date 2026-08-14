@@ -11,7 +11,11 @@ class ServiceResource extends JsonResource
     {
         $user = auth('api')->user();
         $isProvider = $user && $user->hasRole('service_provider');
+$offer = $this->offer;
 
+if ($offer &&(!$offer->is_active ||today()->gt($offer->end_date))) {
+    $offer = null;
+}
         if ($request->routeIs('services.index')) {
             $primaryImage = $this->images->where('is_primary', true)->first() ?? $this->images->first();
 
@@ -31,6 +35,12 @@ class ServiceResource extends JsonResource
                 'governorate_name' => $this->city?->governorate?->name,
                 'city_id' => $this->city_id,
                 'city_name' => $this->city?->name,
+                'offer' => $offer ? [
+    'id' => $offer->id,
+    'discount' => $offer->discount,
+    'offer_price' => $offer->offer_price,
+    'original_price' => $offer->original_price,
+] : null,
                 'image' => $primaryImage?->url
             ];
         }
