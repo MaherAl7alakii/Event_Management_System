@@ -41,8 +41,9 @@ class BookingController extends Controller
     public function index(Request $request)
     {
         $status = $request->query('status');
+        $data = $request->query('data');
 
-        $bookings = $this->bookingService->getUserBookings(auth()->user(), $status);
+        $bookings = $this->bookingService->getUserBookings(auth()->user(), $status,$data);
 
         return $this->apiResponse(
             !$bookings->isEmpty() ? [
