@@ -21,7 +21,7 @@ class BookingService
     ) {
     }
 
-    public function getUserBookings($user, ?string $status)
+    public function getUserBookings($user, ?string $status,?string $date )
     {
         return Booking::with(['service', 'customer', 'provider'])
             ->where('status', '!=', BookingStatus::DRAFT->value)
@@ -32,6 +32,7 @@ class BookingService
                 });
             })
             ->ofStatus($status)
+            ->when($date, fn ($query) => $query->whereDate('created_at', $date))
             ->latest()
             ->paginate(20);
     }
@@ -104,7 +105,7 @@ class BookingService
     }
 
 
-    public function respondToBooking(Booking $booking, string $action, ?int $bufferAfterMinutes = null): Booking
+    public function respondToBooking(Booking $booking, string $action, ?int $bufferAfterMinutes = null,?float $finalPrice = null): Booking
     {
         DB::transaction(function () use ($booking, $action, $bufferAfterMinutes) {
             if ($action === 'accept') {
@@ -120,6 +121,7 @@ class BookingService
                     'status'                => BookingStatus::ACCEPTED->value,
                     'accepted_at'            => now(),
                     'buffer_after_minutes'   => $bufferAfterMinutes,
+                    'final_price' => round($finalPrice ?? (float) $booking->estimated_price, 2),
                 ]);
                 $booking->deposit_deadline_at = $this->deadlines->depositDeadline($booking);
                 $booking->save();
@@ -135,13 +137,15 @@ class BookingService
 
         });
 
+        $booking = $booking->fresh(['service', 'customer', 'provider', 'event.city.governorate']);
+
         match ($action) {
             'accept' => $this->notifier->dispatch(new BookingAcceptedNotification($booking)),
             'reject' => $this->notifier->dispatch(new BookingRejectedNotification($booking)),
             default  => null,
         };
 
-        return $booking->fresh(['service', 'customer', 'provider', 'event.city.governorate']);
+        return $booking;
     }
 
     public function calculateEstimatedPrice(Service $service, array $data): float

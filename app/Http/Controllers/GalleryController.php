@@ -28,7 +28,7 @@ class GalleryController extends Controller
 
 
 
-   public function index(int $serviceProviderId, $request): JsonResponse
+   public function index(int $serviceProviderId,Request $request): JsonResponse
 {
     $gallery = $this->galleryService->index($serviceProviderId,$request->category_id);
     return $this->apiResponse(
@@ -39,7 +39,7 @@ class GalleryController extends Controller
 }
 
 
-   
+
     public function store(StoreGalleryRequest $request): JsonResponse
     {
         $gallery = $this->galleryService->create(auth()->id(),$request->validated());
@@ -51,7 +51,7 @@ class GalleryController extends Controller
     }
 
 
-   
+
     public function show(ServiceProviderGallery $gallery): JsonResponse
     {
         return $this->apiResponse(
@@ -62,8 +62,8 @@ class GalleryController extends Controller
     }
 
 
-    
-    public function update(UpdateGalleryRequest $request,ServiceProviderGallery $gallery): JsonResponse 
+
+    public function update(UpdateGalleryRequest $request,ServiceProviderGallery $gallery): JsonResponse
     {
         $gallery = $this->galleryService->update(auth()->id(),$gallery,$request->validated());
         return $this->apiResponse(
@@ -74,7 +74,7 @@ class GalleryController extends Controller
     }
 
 
-    
+
     public function destroy(ServiceProviderGallery $gallery): JsonResponse
     {
         $this->galleryService->delete(auth()->id(),$gallery);
