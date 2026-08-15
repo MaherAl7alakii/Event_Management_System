@@ -60,6 +60,7 @@ class EventRequest extends FormRequest
         $isStore = $this->isMethod('post');
         $minDate = now()->addDays(4)->toDateString();
 
+
         return [
             'event_type_id' => 'required|exists:event_types,id',
 

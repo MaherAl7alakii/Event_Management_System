@@ -16,7 +16,7 @@ Route::prefix('bookings')->middleware(['auth:api','verified.email','setLanguage'
     Route::get('/service/{service}/estimate-price', [BookingController::class, 'estimatePrice'])->middleware('permission:estimate_booking_price');
     Route::get('/service/{service}/check-availability', [BookingController::class, 'checkAvailability']);
 
-    Route::post('/bookings/{booking}/cancel', [BookingCancellationController::class, 'cancel']);
+    Route::post('/{booking}/cancel', [BookingCancellationController::class, 'cancel']);
 
     Route::prefix('{booking}')->group(function () {
         Route::get('/', [BookingController::class, 'show'])->middleware('permission:view_bookings');
