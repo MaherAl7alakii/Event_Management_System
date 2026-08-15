@@ -17,15 +17,7 @@ class ServiceShowResource extends JsonResource
         $user = auth('api')->user();
         $offer = $this->offer;
 
-if (
-    $offer &&
-    (
-        !$offer->is_active ||
-        today()->lt($offer->start_date) ||
-        today()->gt($offer->end_date)
-    )
-)
-{
+if ($offer &&(!$offer->is_active ||today()->gt($offer->end_date))) {
     $offer = null;
 }
         $isProvider = $user && $user->hasRole('service_provider') && $user->id === $this->provider_id;

@@ -315,6 +315,10 @@ public function getProviderCategoryServices($request, $providerId, $categoryId)
         ->where('provider_id', $provider->user_id)
         ->where('category_id', $categoryId)
         ->where('is_active', true)
+        ->whereHas('offer', function ($query) {
+         $query->where('is_active', true)
+        ->whereDate('end_date', '>=', today());
+})
         ->when(
                 auth('api')->check(),
                 function ($query) {
@@ -350,10 +354,9 @@ public function getProviderOfferServices($request, $providerId)
         ->where('provider_id', $provider->user_id)
         ->where('is_active', true)
         ->whereHas('offer', function ($query) {
-            $query->where('is_active', true)
-                ->where('start_date', '<=', now())
-                ->where('end_date', '>=', now());
-        })
+    $query->where('is_active', true)
+        ->whereDate('end_date', '>=', today());
+})
         ->when(
                 auth('api')->check(),
                 function ($query) {

@@ -82,19 +82,16 @@ class OfferService
     /**
      * Show Offer
      */
-   public function show(Service $service): ServiceOffer
+public function show(Service $service): ServiceOffer
 {
     $offer = $service->offer()
         ->where('is_active', true)
-        ->whereDate('start_date', '<=', today())
         ->whereDate('end_date', '>=', today())
         ->first();
-
 
     if (!$offer) {
         throw new HttpException(404, 'Offer not found.');
     }
-
 
     return $offer;
 }
@@ -103,6 +100,7 @@ class OfferService
      */
     private function checkOwner(Service $service, int $userId): void
     {
+        
         if ($service->provider_id != $userId) {
             throw new HttpException(
                 403,
