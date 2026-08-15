@@ -19,7 +19,11 @@ class PackageResource extends JsonResource
             'id'=>$this->id,
             'name'=>$this->name,
             'description'=>$this->description,
-            'image'=>$this->image?asset('storage/'.$this->image):null,
+            'image' => $this->image
+            ? (filter_var($this->image, FILTER_VALIDATE_URL)
+            ? $this->image
+            : asset('storage/' . $this->image))
+            : null,
             'total_price'=>(float)$this->total_price,
             'discount_percentage' => (float)$this->discount,
             'discount_amount' => round($this->total_price * $this->discount / 100,2),

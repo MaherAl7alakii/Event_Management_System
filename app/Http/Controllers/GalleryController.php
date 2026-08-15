@@ -28,7 +28,7 @@ class GalleryController extends Controller
 
 
 
-   public function index(int $serviceProviderId, $request): JsonResponse
+   public function index(int $serviceProviderId, Request $request): JsonResponse
 {
     $gallery = $this->galleryService->index($serviceProviderId,$request->category_id);
     return $this->apiResponse(
