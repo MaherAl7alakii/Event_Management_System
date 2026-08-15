@@ -22,6 +22,7 @@ class Booking extends Model
         'base_price',
         'estimated_price',
         'final_price',
+        'deposit_amount_paid',
         'booking_date',
         'start_time',
         'duration',
@@ -32,24 +33,31 @@ class Booking extends Model
         'submitted_at',
         'accepted_at',
         'rejected_at',
+        'cancelled_at',
         'confirmed_at',
         'completed_at',
+        'deposit_deadline_at',
+        'final_payment_deadline_at',
+        'payout_deadline_at',
     ];
 
     protected function casts(): array
     {
         return [
-            'booking_date' => 'date',
-            'start_time'   => 'datetime',
-            'submitted_at' => 'datetime',
-            'accepted_at'  => 'datetime',
-            'rejected_at'  => 'datetime',
-            'confirmed_at' => 'datetime',
-            'completed_at' => 'datetime',
-            'pricing_type' => PricingType::class,
-            'status'       => BookingStatus::class,
-            'deposit_deadline_at'       => 'datetime',
-            'final_payment_deadline_at' => 'datetime',
+            'booking_date'               => 'date',
+            'start_time'                 => 'datetime',
+            'submitted_at'                => 'datetime',
+            'accepted_at'                 => 'datetime',
+            'rejected_at'                 => 'datetime',
+            'cancelled_at'                => 'datetime',
+            'confirmed_at'                => 'datetime',
+            'completed_at'                => 'datetime',
+            'deposit_deadline_at'         => 'datetime',
+            'final_payment_deadline_at'   => 'datetime',
+            'payout_deadline_at'          => 'datetime',
+            'pricing_type'                => PricingType::class,
+            'status'                      => BookingStatus::class,
+            'deposit_amount_paid'         => 'decimal:2',
         ];
     }
 
@@ -85,6 +93,32 @@ class Booking extends Model
         return $this->hasMany(Payment::class);
     }
 
+    public function complaints()
+    {
+        return $this->hasMany(BookingComplaint::class);
+    }
+
+
+    public function priceProposals()
+    {
+        return $this->hasMany(BookingPriceProposal::class)->latest();
+    }
+
+
+    public function activeComplaint()
+    {
+        return $this->hasOne(BookingComplaint::class)
+            ->where('status', \App\Enums\ComplaintStatus::PENDING->value);
+    }
+
+
+    public function pendingPriceProposal()
+    {
+        return $this->hasOne(BookingPriceProposal::class)
+            ->where('status', \App\Enums\PriceProposalStatus::PENDING->value)
+            ->latestOfMany();
+    }
+
 
     public function startsAt(): Carbon
     {
@@ -92,7 +126,6 @@ class Booking extends Model
             $this->booking_date->toDateString() . ' ' . $this->start_time->format('H:i:s')
         );
     }
-
 
     public function endsAt(): Carbon
     {
@@ -106,23 +139,30 @@ class Booking extends Model
     }
 
 
-
     public const DEPOSIT_PERCENTAGE = 0.30;
+
 
     public function totalValue(): float
     {
         return (float) ($this->final_price ?? $this->estimated_price);
     }
 
+
     public function depositAmount(): float
     {
         return round($this->totalValue() * self::DEPOSIT_PERCENTAGE, 2);
     }
 
+    public function depositAmountActuallyPaid(): float
+    {
+        return (float) ($this->deposit_amount_paid ?? 0);
+    }
+
+
     public function finalBalanceAmount(): float
     {
-        if ($this->status === BookingStatus::DEPOSIT_PAID) {
-            return max(round($this->totalValue() - $this->depositAmount(), 2), 0);
+        if ($this->deposit_amount_paid !== null) {
+            return max(round($this->totalValue() - $this->depositAmountActuallyPaid(), 2), 0);
         }
 
         return $this->totalValue();

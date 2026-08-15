@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BookingCancellationController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\BookingStatusController;
 use Illuminate\Support\Facades\Route;
@@ -14,6 +15,8 @@ Route::prefix('bookings')->middleware(['auth:api','verified.email','setLanguage'
 
     Route::get('/service/{service}/estimate-price', [BookingController::class, 'estimatePrice'])->middleware('permission:estimate_booking_price');
     Route::get('/service/{service}/check-availability', [BookingController::class, 'checkAvailability']);
+
+    Route::post('/bookings/{booking}/cancel', [BookingCancellationController::class, 'cancel']);
 
     Route::prefix('{booking}')->group(function () {
         Route::get('/', [BookingController::class, 'show'])->middleware('permission:view_bookings');

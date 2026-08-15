@@ -3,6 +3,9 @@
 namespace App\Services;
 
 use App\Models\ServiceProvider;
+use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Category;
 use App\Models\Portfolio;
@@ -10,65 +13,104 @@ use App\Models\ServiceProviderCategory;
 use App\Models\ServiceProviderDocument;
 use App\Models\Service;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
+
 class ServiceProviderService
 {
-    private WorkingHoursService $workingHoursService;
 
-    public function __construct(WorkingHoursService $workingHoursService)
-    {
-        $this->workingHoursService = $workingHoursService;
+    public function __construct(
+        private readonly WorkingHoursService $workingHoursService,
+        private readonly StripeAccountService $stripeService,
+    ) {
     }
-    public function updateOrCreateProvider(int $userId, array $data,bool $isCreate)
+
+    public function createProvider(int $userId, array $data): ServiceProvider
     {
-        if (isset($data['avatar']) && $data['avatar'] instanceof \Illuminate\Http\UploadedFile) {
-            $provider = ServiceProvider::where('user_id', $userId)->first();
-            if ($provider && $provider->avatar) {
-                Storage::disk('public')->delete($provider->avatar);
+        if (ServiceProvider::where('user_id', $userId)->exists()) {
+            throw new InvalidArgumentException(__('messages.provider_already_exists'));
+        }
+
+
+        $user = User::findOrFail($userId);
+
+
+        $stripeAccountId = $this->stripeService->createVerifiedAccount($user->name, $user->email);
+
+        return DB::transaction(function () use ($userId, $data, $user, $stripeAccountId) {
+
+            if (isset($data['avatar']) && $data['avatar'] instanceof UploadedFile) {
+                $extension = $data['avatar']->getClientOriginalExtension();
+                $fileName = Str::slug($user->name) . '-' . time() . '.' . $extension;
+                $data['avatar'] = $data['avatar']->storeAs('avatars/providers', $fileName, 'public');
             }
-                    $user = auth()->user();
 
-$extension = $data['avatar']->getClientOriginalExtension();
+            $data['user_id'] = $userId;
+            $data['stripe_account_id'] = $stripeAccountId;
+
+            $provider = ServiceProvider::create($data);
 
 
-$fileName = Str::slug($user->name) . '.' . $extension;
-
-$data['avatar'] = $data['avatar']->storeAs(
-    'avatars/providers',
-    $fileName,
-    'public'
-);
-
-        }
-
-        $provider = ServiceProvider::updateOrCreate(
-            ["user_id" => $userId],
-            $data
-        );
-
-        if (isset($data["categories"])) {
-           $provider->categories()->sync($data["categories"]);
-        }
-
-        if (isset($data["documents"])) {
-            $provider->documents()->delete();
-            foreach ($data["documents"] as $documentUrl) {
-                $provider->documents()->create(["url" => $documentUrl]);
+            if (isset($data['categories'])) {
+                $provider->categories()->sync($data['categories']);
             }
-        }
 
-        if (isset($data["portfolios"])) {
-            $provider->portfolios()->delete();
-            foreach ($data["portfolios"] as $portfolioItem) {
-                $provider->portfolios()->create($portfolioItem);
+            if (isset($data['documents'])) {
+                foreach ($data['documents'] as $documentUrl) {
+                    $provider->documents()->create(['url' => $documentUrl]);
+                }
             }
-        }
 
-        // if($isCreate)
-        //     $this->workingHoursService->createDefaultWorkingHours($provider);
+            if (isset($data['portfolios'])) {
+                foreach ($data['portfolios'] as $portfolioItem) {
+                    $provider->portfolios()->create($portfolioItem);
+                }
+            }
+
+            $this->workingHoursService->createDefaultWorkingHours($provider);
+
+            return $provider;
+        });
+    }
 
 
+    public function updateProvider(ServiceProvider $provider, array $data): ServiceProvider
+    {
+        return DB::transaction(function () use ($provider, $data) {
 
-        return $provider;
+            if (isset($data['avatar']) && $data['avatar'] instanceof UploadedFile) {
+                if ($provider->avatar) {
+                    Storage::disk('public')->delete($provider->avatar);
+                }
+
+                $user = auth()->user();
+                $extension = $data['avatar']->getClientOriginalExtension();
+                $fileName = Str::slug($user->name) . '-' . time() . '.' . $extension;
+                $data['avatar'] = $data['avatar']->storeAs('avatars/providers', $fileName, 'public');
+            }
+
+            $provider->update($data);
+
+
+            if (isset($data['categories'])) {
+                $provider->categories()->sync($data['categories']);
+            }
+
+            if (isset($data['documents'])) {
+                $provider->documents()->delete();
+                foreach ($data['documents'] as $documentUrl) {
+                    $provider->documents()->create(['url' => $documentUrl]);
+                }
+            }
+
+            if (isset($data['portfolios'])) {
+                $provider->portfolios()->delete();
+                foreach ($data['portfolios'] as $portfolioItem) {
+                    $provider->portfolios()->create($portfolioItem);
+                }
+            }
+
+            return $provider;
+        });
     }
 
     public function getProviderByUserId(int $userId)
@@ -87,7 +129,7 @@ $data['avatar'] = $data['avatar']->storeAs(
     }
 )->where('user_id', $userId)->first();
     }
-   
+
     public function getSetupProgress(): array
 {
     $provider = $this->getProviderByUserId(auth()->id());
@@ -173,4 +215,5 @@ public function getProviderById(int $providerId)
         ->where('approval_status', 'approved')
         ->first();
 }
+
 }

@@ -7,6 +7,7 @@ use App\Enums\EventStatus;
 use App\Enums\PaymentStatus;
 use App\Enums\PaymentType;
 //use App\Enums\TransferStatus;
+use App\Enums\ProviderPayoutReason;
 use App\Models\Booking;
 use App\Models\Event;
 use App\Models\Payment;
@@ -25,6 +26,7 @@ class PaymentCompletionService
 //        private readonly StripeClient $stripe,
         private readonly EventSubmissionService $submissionService,
         private readonly BookingDeadlineCalculator $deadlines,
+        private readonly ProviderPayoutService $payouts,
     ) {
     }
 
@@ -58,6 +60,8 @@ class PaymentCompletionService
                 'stripe_charge_id' => $chargeId,
             ]);
 
+
+            $this->schedulePayoutsForPayment($lockedPayment);
 
             $this->applyBookingAndEventSideEffects($lockedPayment);
 
@@ -133,6 +137,69 @@ class PaymentCompletionService
             ]);
 
         $event->update(['status' => EventStatus::CONFIRMED->value]);
+    }
+
+
+
+    private function schedulePayoutsForPayment(Payment $payment): void
+    {
+
+        if (in_array($payment->payment_type, PaymentType::platformOnlyTypes(), true)) {
+            return;
+        }
+
+        foreach ($this->resolvePayableBookings($payment) as $entry) {
+            $this->payouts->schedule(
+                booking: $entry['booking'],
+                amount: $entry['amount'],
+                reason: $entry['reason'],
+                payment: $payment,
+            );
+        }
+    }
+
+
+    private function resolvePayableBookings(Payment $payment): array
+    {
+        if ($payment->payment_type === PaymentType::ADD_ON_PAYMENT && $payment->booking_id) {
+            $booking = Booking::find($payment->booking_id);
+
+            if (! $booking) {
+                return [];
+            }
+
+            return [[
+                'booking' => $booking,
+                'amount'  => $booking->totalValue(),
+                'reason'  => ProviderPayoutReason::ADD_ON,
+            ]];
+        }
+
+        if ($payment->payment_type === PaymentType::DEPOSIT) {
+            return Booking::where('event_id', $payment->event_id)
+                ->where('status', BookingStatus::ACCEPTED->value)
+                ->get()
+                ->map(fn (Booking $booking) => [
+                    'booking' => $booking,
+                    'amount'  => $booking->depositAmount(),
+                    'reason'  => ProviderPayoutReason::DEPOSIT,
+                ])
+                ->all();
+        }
+
+
+        return Booking::where('event_id', $payment->event_id)
+            ->whereIn('status', [
+                BookingStatus::ACCEPTED->value,
+                BookingStatus::DEPOSIT_PAID->value,
+            ])
+            ->get()
+            ->map(fn (Booking $booking) => [
+                'booking' => $booking,
+                'amount'  => $booking->finalBalanceAmount(),
+                'reason'  => ProviderPayoutReason::FINAL_BALANCE,
+            ])
+            ->all();
     }
 
 }
