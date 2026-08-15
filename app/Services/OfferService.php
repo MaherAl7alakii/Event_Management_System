@@ -100,6 +100,7 @@ public function show(Service $service): ServiceOffer
      */
     private function checkOwner(Service $service, int $userId): void
     {
+        
         if ($service->provider_id != $userId) {
             throw new HttpException(
                 403,
