@@ -108,5 +108,8 @@ return [
         'booking_complaint'  => 'شكوى الحجز',
         'booking_complaints' => 'شكاوى الحجوزات',
 
+        'payments' => 'المدفوعات',
+        'payouts'  => 'المستحقات المالية',
+
     ]
 ];

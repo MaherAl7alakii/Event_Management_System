@@ -114,5 +114,8 @@ return [
 
         'booking_complaint'  => 'Booking Complaint',
         'booking_complaints' => 'Booking Complaints',
+
+        'payments' => 'payments',
+        'payouts'  => 'payouts',
     ]
 ];

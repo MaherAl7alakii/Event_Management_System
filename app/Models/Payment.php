@@ -29,6 +29,18 @@ class Payment extends Model
         ];
     }
 
+    public function scopeFilter(Builder $query, array $filters): Builder
+    {
+        return $query
+            ->where('status', '!=', 'pending')
+            ->when($filters['status'] ?? null, fn ($q, $status) => $q->where('status', $status))
+            ->when($filters['customer_id'] ?? null, fn ($q, $customerId) =>
+            $q->whereHas('event', fn ($eq) => $eq->where('customer_id', $customerId))
+            )
+            ->when($filters['from_date'] ?? null, fn ($q, $date) => $q->whereDate('created_at', '>=', $date))
+            ->when($filters['to_date'] ?? null, fn ($q, $date) => $q->whereDate('created_at', '<=', $date));
+    }
+
     public function scopeOfType(Builder $query, PaymentType $type): Builder
     {
         return $query->where('payment_type', $type->value);
@@ -55,4 +67,9 @@ class Payment extends Model
 //    {
 //        return $this->hasMany(PaymentTransfer::class);
 //    }
+
+    public function refunds()
+    {
+        return $this->hasMany(Refund::class);
+    }
 }
