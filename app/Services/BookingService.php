@@ -50,13 +50,11 @@ class BookingService
     public function createBooking(array $data, $customerId): Booking
     {
         $service = Service::findOrFail($data['service_id']);
-        $event = Event::findOrFail($data['event_id']);
 
-        $data['booking_date'] = $event->event_date;
 
         $this->assertAvailable(
             service: $service,
-            bookingDate: $event->event_date->toDateString(),
+            bookingDate: $data['booking_date'],
             startTime: $data['start_time'],
             duration: $data['duration'] ?? null,
         );

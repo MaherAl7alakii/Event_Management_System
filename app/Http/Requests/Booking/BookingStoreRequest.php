@@ -26,10 +26,14 @@ class BookingStoreRequest extends FormRequest
         $service = Service::find($this->input('service_id'));
         $pricingType = $service?->pricing_type?->value;
 
+        $minDate = now()->addDays(4)->toDateString();
+
+
 
         return [
             'service_id'     => 'required|exists:services,id',
             'event_id'       => 'required|exists:events,id',
+            'booking_date' => ['required', 'date_format:Y-m-d',"after_or_equal:{$minDate}"],
             'start_time'     => 'required|date_format:H:i',
             'duration'       => [
                 Rule::requiredIf(in_array($pricingType, ['per_hour', 'per_hour_per_person'])),
