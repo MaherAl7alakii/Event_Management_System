@@ -36,11 +36,11 @@ if ($offer &&(!$offer->is_active ||today()->gt($offer->end_date))) {
                 'city_id' => $this->city_id,
                 'city_name' => $this->city?->name,
                 'offer' => $offer ? [
-    'id' => $offer->id,
-    'discount' => $offer->discount,
-    'offer_price' => $offer->offer_price,
-    'original_price' => $offer->original_price,
-] : null,
+                  'id' => $offer->id,
+                  'discount' => $offer->discount,
+                  'offer_price' => $offer->offer_price,
+                  'original_price' => $offer->original_price,
+                      ] : null,
                 'image' => $primaryImage?->url
             ];
         }
@@ -53,6 +53,12 @@ if ($offer &&(!$offer->is_active ||today()->gt($offer->end_date))) {
             'pricing_type' => $this->pricing_type->value,
             'pricing_type_view' => $this->pricing_type->view(),
             'base_price' => $this->base_price,
+            'offer' => $offer ? [
+              'id' => $offer->id,
+              'discount' => $offer->discount,
+              'offer_price' => $offer->offer_price,
+              'original_price' => $offer->original_price,
+                 ] : null,
             'min_hours' => $this->min_hours,
             'max_hours' => $this->max_hours,
             'max_guests' => $this->max_guests,
