@@ -48,7 +48,7 @@ class ServiceProviderController extends Controller
         $isCreate = false;
         if($request->routeIs('provider.store'))
             $isCreate = true;
-        $provider = $this->providerService->updateOrCreateProvider(auth()->id(), $data,$isCreate);
+        $provider = $this->providerService->createProvider(auth()->id(), $data);
 
         return $this->apiResponse(
             new ServiceProviderResource($this->providerService->getProviderByUserId(auth()->id())),
@@ -60,7 +60,7 @@ class ServiceProviderController extends Controller
     public function update(UpdateServiceProviderRequest $request): JsonResponse
     {
         $data = $request->validated();
-        $provider = $this->providerService->updateOrCreateProvider(auth()->id(), $data, false);
+        $provider = $this->providerService->updateProvider(auth()->user()?->serviceProvider, $data);
 
         return $this->apiResponse(
             new ServiceProviderResource($this->providerService->getProviderByUserId(auth()->id())),
@@ -68,7 +68,7 @@ class ServiceProviderController extends Controller
             Response::HTTP_OK
         );
     }
-  
+
     public function setupProgress(): JsonResponse
 {
     return $this->apiResponse(

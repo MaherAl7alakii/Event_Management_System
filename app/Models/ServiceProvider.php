@@ -23,6 +23,7 @@ class ServiceProvider extends Model
         'description',
         'verified_at',
         'rejection_reason',
+        'stripe_account_id',
 //        'main_service_id',
     ];
 
@@ -93,4 +94,9 @@ public function favorites(): MorphMany
 {
     return $this->morphMany(Favorite::class, 'favoritable');
 }
+
+    public function hasCompletedStripeOnboarding(): bool
+    {
+        return ! empty($this->stripe_account_id);
+    }
 }
