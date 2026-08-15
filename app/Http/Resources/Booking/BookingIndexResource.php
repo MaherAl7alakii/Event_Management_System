@@ -43,6 +43,7 @@ class BookingIndexResource extends JsonResource
             'start_time'      => $this->start_time->format('H:i'),
             'status'          => $this->status->value,
             'estimated_price' => (float) $this->estimated_price,
+            'final_price'       => $this->final_price ==null ? (float) $this->estimated_price : (float) $this->final_price,
             'deposit_deadline'       => $this->formatDeadline($this->deposit_deadline_at),
             'final_payment_deadline' => $this->formatDeadline($this->final_payment_deadline_at),
         ];
