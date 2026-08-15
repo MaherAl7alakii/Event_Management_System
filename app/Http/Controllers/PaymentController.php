@@ -3,23 +3,30 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\Event\EventShowResource;
+use App\Http\Resources\Payment\PaymentResource;
+use App\Http\Resources\Payment\ProviderPayoutResource;
 use App\Models\Booking;
 use App\Models\Event;
 use App\Services\EventSubmissionService;
 use App\Services\PaymentGatewayService;
+use App\Services\PaymentQueryService;
 use App\Traits\ResponseTrait;
 use Exception;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class PaymentController extends Controller
 {
     use AuthorizesRequests;
     use ResponseTrait;
+
+    protected string $resourceName = 'messages.resources.payments';
     public function __construct(
         private readonly PaymentGatewayService $gatewayService,
         private readonly EventSubmissionService $submissionService,
+        private readonly PaymentQueryService $paymentQuery
     ) {
     }
 
@@ -103,6 +110,86 @@ class PaymentController extends Controller
                 'amount'        => $result['amount'],
             ],
             __('messages.payment.final_balance_intent_created'),
+            Response::HTTP_OK
+        );
+    }
+
+
+    public function payments(Request $request)
+    {
+        $filters = $request->only(['from_date', 'to_date']);
+        $payments = $this->paymentQuery->forCustomer(auth()->user(), $filters);
+
+        return $this->apiResponse(
+           !$payments->isEmpty() ? PaymentResource::collection($payments) : null,
+            $payments->isEmpty()
+                ? __('messages.empty', ['resource' => __($this->resourceName)])
+                : __('messages.fetched_success', ['resource' => __($this->resourceName)]),
+            Response::HTTP_OK
+        );
+    }
+
+
+    public function payouts(Request $request)
+    {
+        $provider = auth()->user();
+
+        abort_unless($provider->serviceProvider, 403);
+
+        $filters = $request->only(['from_date', 'to_date']);
+        $payouts = $this->paymentQuery->forProvider($provider, $filters);
+
+        return $this->apiResponse(
+            !$payouts->isEmpty() ? ProviderPayoutResource::collection($payouts) : null,
+            $payouts->isEmpty()
+                ? __('messages.empty', ['resource' => __('messages.resources.payouts')])
+                : __('messages.fetched_success', ['resource' => __('messages.resources.payouts')]),
+            Response::HTTP_OK
+        );
+    }
+
+
+    public function payoutsSummary()
+    {
+        $provider = auth()->user();
+
+        abort_unless($provider->serviceProvider, 403);
+
+        $summary = $this->paymentQuery->providerEarningsSummary($provider);
+
+        return $this->apiResponse(
+            $summary,
+            __('messages.fetched_success', ['resource' => __('messages.resources.payouts')]),
+            Response::HTTP_OK
+        );
+    }
+
+
+    public function adminPayments(Request $request)
+    {
+        $filters = $request->only(['status', 'customer_id', 'provider_id', 'from_date', 'to_date']);
+        $payments = $this->paymentQuery->allPayments($filters);
+
+        return $this->apiResponse(
+           !$payments->isEmpty() ? PaymentResource::collection($payments) : null,
+            $payments->isEmpty()
+                ? __('messages.empty', ['resource' => __($this->resourceName)])
+                : __('messages.fetched_success', ['resource' => __($this->resourceName)]),
+            Response::HTTP_OK
+        );
+    }
+
+
+    public function adminPayouts(Request $request)
+    {
+        $filters = $request->only(['status', 'customer_id', 'provider_id', 'from_date', 'to_date']);
+        $payouts = $this->paymentQuery->allPayouts($filters);
+
+        return $this->apiResponse(
+            ! $payouts->isEmpty() ? ProviderPayoutResource::collection($payouts): null,
+            $payouts->isEmpty()
+                ? __('messages.empty', ['resource' => __('messages.resources.payouts')])
+                : __('messages.fetched_success', ['resource' => __('messages.resources.payouts')]),
             Response::HTTP_OK
         );
     }

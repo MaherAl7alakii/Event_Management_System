@@ -33,6 +33,19 @@ class ProviderPayout extends Model
         ];
     }
 
+
+    public function scopeFilter(Builder $query, array $filters): Builder
+    {
+        return $query
+            ->when($filters['status'] ?? null, fn ($q, $status) => $q->where('status', $status))
+            ->when($filters['provider_id'] ?? null, fn ($q, $providerId) => $q->where('provider_id', $providerId))
+            ->when($filters['customer_id'] ?? null, fn ($q, $customerId) =>
+            $q->whereHas('booking.event', fn ($eq) => $eq->where('customer_id', $customerId))
+            )
+            ->when($filters['from_date'] ?? null, fn ($q, $date) => $q->whereDate('created_at', '>=', $date))
+            ->when($filters['to_date'] ?? null, fn ($q, $date) => $q->whereDate('created_at', '<=', $date));
+    }
+
     public function booking()
     {
         return $this->belongsTo(Booking::class);
