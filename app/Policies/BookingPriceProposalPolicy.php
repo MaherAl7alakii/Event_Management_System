@@ -78,6 +78,6 @@ class BookingPriceProposalPolicy
     public function respond(User $user, BookingPriceProposal $proposal): bool
     {
         return $user->id === $proposal->booking->customer_id
-            && $proposal->status === 'pending';
+            && $proposal->status->value === 'pending';
     }
 }
