@@ -31,6 +31,10 @@ class BookingIndexResource extends JsonResource
                 'id'   => $this->provider->serviceProvider?->id,
                 'name' => $this->provider->serviceProvider?->business_name,
             ],
+            'customer' => [
+                'id'   => $this->customer->id,
+                'name' => $this->customer->name,
+            ],
             'governorate' => [
                 'id'   => $this->event->city->governorate->id,
                 'name' => $this->event->city->governorate->name,
