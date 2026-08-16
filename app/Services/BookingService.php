@@ -105,7 +105,7 @@ class BookingService
 
     public function respondToBooking(Booking $booking, string $action, ?int $bufferAfterMinutes = null,?float $finalPrice = null): Booking
     {
-        DB::transaction(function () use ($booking, $action, $bufferAfterMinutes) {
+        DB::transaction(function () use ($booking, $action, $bufferAfterMinutes,$finalPrice) {
             if ($action === 'accept') {
                 $this->assertAvailable(
                     service: $booking->service,

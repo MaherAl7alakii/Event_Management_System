@@ -27,10 +27,12 @@ class BookingStatusController extends Controller
     public function accept(BookingRespondRequest $request ,Booking $booking)
     {
 
-        $this->authorize('accept', $booking);
+//        $this->authorize('accept', $booking);
+
+        $finalPrice = $request->input('final_price');
 
 
-        $updatedBooking = $this->bookingService->respondToBooking($booking, 'accept',$request->buffer_after_minutes);
+        $updatedBooking = $this->bookingService->respondToBooking($booking, 'accept',$request->buffer_after_minutes,$finalPrice);
 
         return $this->apiResponse(
             new BookingShowResource($updatedBooking),

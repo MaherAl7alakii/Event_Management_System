@@ -22,6 +22,7 @@ class BookingRespondRequest extends FormRequest
                 'min:0',
                 'max:1440',
             ],
+            'final_price' => ['nullable', 'numeric', 'min:0', 'max:10000000'],
         ];
     }
 }
