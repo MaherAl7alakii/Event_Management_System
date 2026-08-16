@@ -19,7 +19,11 @@ class ProfileResource extends JsonResource
             'user' => new UserResource($this->whenLoaded('user')),
             'city' => new CityResource($this->whenLoaded('city')),
             'phone' => $this->phone,
-            'avatar' => $this->avatar ? asset('storage/' . $this->avatar) : null,
+            'avatar' => $this->avatar
+            ? (filter_var($this->avatar, FILTER_VALIDATE_URL)
+            ? $this->avatar
+            : asset('storage/' . $this->avatar))
+            : null,
             'address' => $this->address,
             'gender' => $this->gender,
             'birth_of_date' => $this->birth_of_date,

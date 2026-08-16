@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('service-providers/{provider}/packages',[PackageController::class,'index']);
 Route::get('packages/{package}',[PackageController::class,'show']);
-
+Route::get('packages', [PackageController::class, 'index']);
 
 Route::middleware(['auth:api','check.banned','provider.approved'])->group(function(){
     Route::post('packages',[PackageController::class,'store']);

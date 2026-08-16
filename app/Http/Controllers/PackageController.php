@@ -10,7 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use App\Http\Requests\Package\StorePackageRequest;
 use App\Http\Requests\Package\UpdatePackageRequest;
-
+use Illuminate\Http\Request;
 class PackageController extends Controller
 {
 
@@ -63,16 +63,16 @@ class PackageController extends Controller
     }
 
 
-    public function index($provider): JsonResponse
-    {
-        $packages = $this->packageService->index($provider);
-        return $this->apiResponse(
-            PackageResource::collection($packages),
-            'Packages retrieved successfully.',
-            Response::HTTP_OK
-        );
+    public function index(Request $request, $provider = null): JsonResponse
+{
+    $packages = $this->packageService->index($provider, $request);
 
-    }
+    return $this->apiResponse(
+        PackageResource::collection($packages),
+        'Packages retrieved successfully.',
+        Response::HTTP_OK
+    );
+}
 
 
     public function show(Package $package): JsonResponse

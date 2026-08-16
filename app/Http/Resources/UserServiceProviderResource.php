@@ -16,6 +16,14 @@ class UserServiceProviderResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'user' => [
+              'name' => $this->user?->name,
+              'email' => $this->user?->email,
+              'is_banned' => (bool) ($this->user?->is_banned ?? false),
+                    ],
+            'phone' => $this->phone,
+            'approval_status' => $this->approval_status,
+            'rejection_reason' => $this->rejection_reason,
             'business_name' => $this->business_name,
             'is_favorite' => (bool) ($this->is_favorite ?? false),
             'avatar' => $this->avatar

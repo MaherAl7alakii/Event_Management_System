@@ -4,8 +4,10 @@ namespace App\Services;
 
 use App\Models\ServiceProvider;
 use App\Models\User;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Category;
 use App\Models\Portfolio;
@@ -76,6 +78,21 @@ class ServiceProviderService
     public function updateProvider(ServiceProvider $provider, array $data): ServiceProvider
     {
         return DB::transaction(function () use ($provider, $data) {
+
+            if (isset($data['first_name']) || isset($data['last_name'])) {
+
+                $user = User::findOrFail($userId);
+
+                $currentName = explode(' ', trim($user->name), 2);
+
+                $firstName = $data['first_name']?? ($currentName[0] ?? '');
+
+                $lastName = $data['last_name']?? ($currentName[1] ?? '');
+
+                $user->update(['name' => trim($firstName . ' ' . $lastName),]);
+
+                unset($data['first_name'],$data['last_name']);
+            }
 
             if (isset($data['avatar']) && $data['avatar'] instanceof UploadedFile) {
                 if ($provider->avatar) {
@@ -215,5 +232,23 @@ public function getProviderById(int $providerId)
         ->where('approval_status', 'approved')
         ->first();
 }
+
+
+    public function changePassword(int $userId, string $oldPassword, string $newPassword): void
+    {
+        $user = User::findOrFail($userId);
+
+        if (!Hash::check($oldPassword, $user->password)) {
+            throw new HttpException(
+                422,
+                'The old password is incorrect.'
+            );
+        }
+
+        $user->update([
+            'password' => Hash::make($newPassword),
+        ]);
+    }
+
 
 }
