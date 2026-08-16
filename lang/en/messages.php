@@ -41,6 +41,15 @@ return [
     'typing_broadcasted'   => 'Typing status broadcasted successfully.',
 
 
+    'price_proposal_submitted_successfully'       => 'Price proposal submitted successfully.',
+    'price_proposal_history_fetched_successfully' => 'Price proposal history retrieved successfully.',
+    'price_proposal_responded_successfully'       => 'Price proposal response recorded successfully.',
+
+
+    'booking_cancelled_successfully' => 'Booking cancelled successfully.',
+    'not_party_to_booking'          => 'You are not a party to this booking.',
+
+
     'validation' => [
         'at_least_one' => 'You must provide service details in at least one language (Arabic or English).',
         'features' => [
@@ -102,5 +111,11 @@ return [
         'conversations' => 'Conversations',
         'message'       => 'Message',
         'messages'      => 'Messages',
+
+        'booking_complaint'  => 'Booking Complaint',
+        'booking_complaints' => 'Booking Complaints',
+
+        'payments' => 'payments',
+        'payouts'  => 'payouts',
     ]
 ];

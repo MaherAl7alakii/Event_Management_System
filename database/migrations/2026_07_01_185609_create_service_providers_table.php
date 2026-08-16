@@ -14,6 +14,8 @@ return new class extends Migration
         Schema::create('service_providers', function (Blueprint $table) {
 
     $table->id();
+    $table->string('stripe_account_id')->nullable();
+    $table->boolean('stripe_onboarding_completed')->default(true);
 
     $table->foreignId('user_id')->constrained()->cascadeOnDelete();
 

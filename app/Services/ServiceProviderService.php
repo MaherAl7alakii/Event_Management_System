@@ -3,6 +3,11 @@
 namespace App\Services;
 
 use App\Models\ServiceProvider;
+use App\Models\User;
+use Symfony\Component\HttpKernel\Exception\HttpException;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Category;
 use App\Models\Portfolio;
@@ -10,90 +15,121 @@ use App\Models\ServiceProviderCategory;
 use App\Models\ServiceProviderDocument;
 use App\Models\Service;
 use Illuminate\Support\Str;
-use App\Models\User;
-use Illuminate\Support\Facades\Hash;
-use Symfony\Component\HttpKernel\Exception\HttpException;
+use InvalidArgumentException;
+
 class ServiceProviderService
 {
-    private WorkingHoursService $workingHoursService;
 
-    public function __construct(WorkingHoursService $workingHoursService)
+    public function __construct(
+        private readonly WorkingHoursService $workingHoursService,
+        private readonly StripeAccountService $stripeService,
+    ) {
+    }
+
+    public function createProvider(int $userId, array $data): ServiceProvider
     {
-        $this->workingHoursService = $workingHoursService;
-    }
-   public function updateOrCreateProvider(int $userId, array $data, bool $isCreate)
-{
-    if (isset($data['first_name']) || isset($data['last_name'])) {
+        if (ServiceProvider::where('user_id', $userId)->exists()) {
+            throw new InvalidArgumentException(__('messages.provider_already_exists'));
+        }
+
 
         $user = User::findOrFail($userId);
 
-        $currentName = explode(' ', trim($user->name), 2);
 
-        $firstName = $data['first_name']?? ($currentName[0] ?? '');
+        $stripeAccountId = $this->stripeService->createVerifiedAccount($user->name, $user->email);
 
-        $lastName = $data['last_name']?? ($currentName[1] ?? '');
+        return DB::transaction(function () use ($userId, $data, $user, $stripeAccountId) {
 
-        $user->update(['name' => trim($firstName . ' ' . $lastName),]);
+            if (isset($data['avatar']) && $data['avatar'] instanceof UploadedFile) {
+                $extension = $data['avatar']->getClientOriginalExtension();
+                $fileName = Str::slug($user->name) . '-' . time() . '.' . $extension;
+                $data['avatar'] = $data['avatar']->storeAs('avatars/providers', $fileName, 'public');
+            }
 
-        unset($data['first_name'],$data['last_name']);
+            $data['user_id'] = $userId;
+            $data['stripe_account_id'] = $stripeAccountId;
+
+            $provider = ServiceProvider::create($data);
+
+
+            if (isset($data['categories'])) {
+                $provider->categories()->sync($data['categories']);
+            }
+
+            if (isset($data['documents'])) {
+                foreach ($data['documents'] as $documentUrl) {
+                    $provider->documents()->create(['url' => $documentUrl]);
+                }
+            }
+
+            if (isset($data['portfolios'])) {
+                foreach ($data['portfolios'] as $portfolioItem) {
+                    $provider->portfolios()->create($portfolioItem);
+                }
+            }
+
+            $this->workingHoursService->createDefaultWorkingHours($provider);
+
+            return $provider;
+        });
     }
 
 
-    if (isset($data['avatar']) &&$data['avatar'] instanceof \Illuminate\Http\UploadedFile) {
+    public function updateProvider(ServiceProvider $provider, array $data): ServiceProvider
+    {
+        return DB::transaction(function () use ($provider, $data) {
 
-        $provider = ServiceProvider::where('user_id',$userId)->first();
+            if (isset($data['first_name']) || isset($data['last_name'])) {
 
-        if ($provider && $provider->avatar) {
-            Storage::disk('public')->delete($provider->avatar);
-        }
+                $user = User::findOrFail($userId);
 
-        $user = User::findOrFail($userId);
+                $currentName = explode(' ', trim($user->name), 2);
 
-        $extension = $data['avatar']->getClientOriginalExtension();
+                $firstName = $data['first_name']?? ($currentName[0] ?? '');
 
-        $fileName = Str::slug($user->name) . '.' . $extension;
+                $lastName = $data['last_name']?? ($currentName[1] ?? '');
 
-        $data['avatar'] = $data['avatar']->storeAs(
-            'avatars/providers',
-            $fileName,
-            'public'
-        );
+                $user->update(['name' => trim($firstName . ' ' . $lastName),]);
+
+                unset($data['first_name'],$data['last_name']);
+            }
+
+            if (isset($data['avatar']) && $data['avatar'] instanceof UploadedFile) {
+                if ($provider->avatar) {
+                    Storage::disk('public')->delete($provider->avatar);
+                }
+
+                $user = auth()->user();
+                $extension = $data['avatar']->getClientOriginalExtension();
+                $fileName = Str::slug($user->name) . '-' . time() . '.' . $extension;
+                $data['avatar'] = $data['avatar']->storeAs('avatars/providers', $fileName, 'public');
+            }
+
+            $provider->update($data);
+
+
+            if (isset($data['categories'])) {
+                $provider->categories()->sync($data['categories']);
+            }
+
+            if (isset($data['documents'])) {
+                $provider->documents()->delete();
+                foreach ($data['documents'] as $documentUrl) {
+                    $provider->documents()->create(['url' => $documentUrl]);
+                }
+            }
+
+            if (isset($data['portfolios'])) {
+                $provider->portfolios()->delete();
+                foreach ($data['portfolios'] as $portfolioItem) {
+                    $provider->portfolios()->create($portfolioItem);
+                }
+            }
+
+            return $provider;
+        });
     }
 
-
-    $provider = ServiceProvider::updateOrCreate(['user_id' => $userId],$data);
-
-
-    if (isset($data['categories'])) {
-        $provider->categories()->sync(
-            $data['categories']
-        );
-    }
-
-
-
-    if (isset($data['documents'])) {
-        $provider->documents()->delete();
-
-        foreach ($data['documents'] as $documentUrl) {
-            $provider->documents()->create([
-                'url' => $documentUrl,
-            ]);
-        }
-    }
-
-    if (isset($data['portfolios'])) {
-        $provider->portfolios()->delete();
-
-        foreach ($data['portfolios'] as $portfolioItem) {
-            $provider->portfolios()->create(
-                $portfolioItem
-            );
-        }
-    }
-
-    return $provider;
-}
     public function getProviderByUserId(int $userId)
     {
         return ServiceProvider::with(['user', 'city.governorate', 'categories', 'documents', 'portfolios','workingHours'])
@@ -110,7 +146,7 @@ class ServiceProviderService
     }
 )->where('user_id', $userId)->first();
     }
-   
+
     public function getSetupProgress(): array
 {
     $provider = $this->getProviderByUserId(auth()->id());
@@ -176,7 +212,6 @@ $progress = (int) (($completed / count($steps)) * 100);
 public function getProviderById(int $providerId)
 {
     return ServiceProvider::with([
-        'user',
         'city.governorate',
         'categories',
         'workingHours',
@@ -194,31 +229,26 @@ public function getProviderById(int $providerId)
         ->withAvg('reviews', 'rating')
         ->withCount('reviews')
         ->where('id', $providerId)
-
-    
-        ->when(
-            !auth('api')->check() ||
-            !auth('api')->user()->hasRole('admin'),
-            function ($query) {
-                $query->where('approval_status', 'approved');
-            }
-        )
-
+        ->where('approval_status', 'approved')
         ->first();
 }
-public function changePassword(int $userId, string $oldPassword, string $newPassword): void
-{
-    $user = User::findOrFail($userId);
 
-    if (!Hash::check($oldPassword, $user->password)) {
-        throw new HttpException(
-            422,
-            'The old password is incorrect.'
-        );
+
+    public function changePassword(int $userId, string $oldPassword, string $newPassword): void
+    {
+        $user = User::findOrFail($userId);
+
+        if (!Hash::check($oldPassword, $user->password)) {
+            throw new HttpException(
+                422,
+                'The old password is incorrect.'
+            );
+        }
+
+        $user->update([
+            'password' => Hash::make($newPassword),
+        ]);
     }
 
-    $user->update([
-        'password' => Hash::make($newPassword),
-    ]);
-}
+
 }

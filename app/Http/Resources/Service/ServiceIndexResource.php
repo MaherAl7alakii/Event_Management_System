@@ -14,6 +14,8 @@ class ServiceIndexResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $user = auth('api')->user();
+        $isProvider = $user && $user->hasRole('service_provider') && $user->id === $this->provider_id;
         $primaryImage = $this->images->where('is_primary', true)->first() ?? $this->images->first();
 $offer = $this->offer;
 
@@ -36,6 +38,7 @@ if ($offer &&(!$offer->is_active ||today()->gt($offer->end_date))) {
             'governorate_name' => $this->city?->governorate?->name,
             'city_id'          => $this->city_id,
             'city_name'        => $this->city?->name,
+            'is_active'         => $this->when($isProvider, $this->is_active),
             'image'            => $primaryImage?->url,
   'offer' => $offer ? [
     'id' => $offer->id,

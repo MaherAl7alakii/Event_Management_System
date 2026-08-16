@@ -10,3 +10,6 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('bookings:cancel-expired')->everyThirtySeconds();
+
+Schedule::command('bookings:complete-due')->everyThirtySeconds();
+Schedule::command('payouts:release-due')->everyThirtySeconds();

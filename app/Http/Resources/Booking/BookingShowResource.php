@@ -27,7 +27,7 @@ class BookingShowResource extends JsonResource
             'quantity'          => $this->whenNotNull($this->quantity),
             'customer_notes'    => $this->customer_notes,
             'estimated_price'   => (float) $this->estimated_price,
-            'final_price'       => (float) $this->final_price,
+            'final_price'       => (float) $this->final_price ?? $this->estimated_price ,
 
             'buffer_after_minutes'   => $this->buffer_after_minutes,
             'deposit_deadline'       => $this->formatDeadline($this->deposit_deadline_at),
@@ -59,12 +59,20 @@ class BookingShowResource extends JsonResource
             'provider' => [
                 'id'   => $this->provider->serviceProvider->id,
                 'name' => $this->provider->serviceProvider->business_name,
+                'user' => [
+                    'id' => $this->provider->id,
+                    'name' => $this->provider->name,
+                    'email' => $this->provider->email,
+                    'avatar' => $this->provider->serviceProvider->avatar,
+                ],
             ],
 
 
             'customer' => [
                 'id'   => $this->customer->id,
                 'name' => $this->customer->name,
+                'email' => $this->customer->email,
+                'avatar' => $this->customer->profile->avatar,
             ],
 
             'submitted_at' => $this->whenNotNull($this->submitted_at?->format('Y-m-d H:i:s')),

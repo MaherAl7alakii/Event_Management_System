@@ -27,6 +27,7 @@ return new class extends Migration
             $table->decimal('base_price', 10, 2);
             $table->decimal('estimated_price', 10, 2)->nullable();
             $table->decimal('final_price', 10, 2)->nullable();
+            $table->decimal('deposit_amount_paid', 10, 2)->nullable();
             $table->date('booking_date');
             $table->time('start_time');
             $table->unsignedInteger('duration')->nullable();
@@ -47,7 +48,9 @@ return new class extends Migration
             $table->timestamp('final_payment_deadline_at')->nullable();
             $table->timestamp('confirmed_at')->nullable();
             $table->timestamp('completed_at')->nullable();
+            $table->timestamp('payout_deadline_at')->nullable();
             $table->timestamp('rejected_at')->nullable();
+            $table->timestamp('cancelled_at')->nullable();
 
 
 

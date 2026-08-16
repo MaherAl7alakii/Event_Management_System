@@ -32,6 +32,14 @@ return [
     'typing_broadcasted'   => 'تم إرسال حالة الكتابة بنجاح.',
 
 
+    'price_proposal_submitted_successfully'       => 'تم تقديم اقتراح السعر بنجاح.',
+    'price_proposal_history_fetched_successfully' => 'تم جلب سجل اقتراحات الأسعار بنجاح.',
+    'price_proposal_responded_successfully'       => 'تم تسجيل الرد على اقتراح السعر بنجاح.',
+
+    'booking_cancelled_successfully' => 'تم إلغاء الحجز بنجاح.',
+    'not_party_to_booking'          => 'عذراً، أنت لست طرفاً في هذا الحجز.',
+
+
 
 
     'validation' => [
@@ -96,6 +104,12 @@ return [
         'conversations' => 'المحادثات',
         'message'       => 'الرسالة',
         'messages'      => 'الرسائل',
+
+        'booking_complaint'  => 'شكوى الحجز',
+        'booking_complaints' => 'شكاوى الحجوزات',
+
+        'payments' => 'المدفوعات',
+        'payouts'  => 'المستحقات المالية',
 
     ]
 ];
