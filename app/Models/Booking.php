@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\BookingStatus;
 use App\Enums\PricingType;
+use App\Services\LedgerService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -22,9 +23,9 @@ class Booking extends Model
         'base_price',
         'estimated_price',
         'final_price',
-        'deposit_amount_paid',
-        'booking_date',
+         'deposit_amount_paid',
         'start_time',
+        'booking_date',
         'duration',
         'quantity',
         'status',
@@ -57,7 +58,6 @@ class Booking extends Model
             'payout_deadline_at'          => 'datetime',
             'pricing_type'                => PricingType::class,
             'status'                      => BookingStatus::class,
-            'deposit_amount_paid'         => 'decimal:2',
         ];
     }
 
@@ -91,6 +91,11 @@ class Booking extends Model
     public function payments()
     {
         return $this->hasMany(Payment::class);
+    }
+
+    public function ledgerEntries()
+    {
+        return $this->hasMany(BookingLedgerEntry::class);
     }
 
     public function complaints()
@@ -148,23 +153,44 @@ class Booking extends Model
     }
 
 
+
     public function depositAmount(): float
     {
         return round($this->totalValue() * self::DEPOSIT_PERCENTAGE, 2);
     }
 
+
+    public function netPaidByCustomer(): float
+    {
+        return app(LedgerService::class)->netPaidByCustomer($this);
+    }
+
+
+    public function remainingBalance(): float
+    {
+        return max(round($this->totalValue() - $this->netPaidByCustomer(), 2), 0);
+    }
+
+
+    public function overpaidAmount(): float
+    {
+        return max(round($this->netPaidByCustomer() - $this->totalValue(), 2), 0);
+    }
+
+    public function isFullyPaid(): bool
+    {
+        return $this->netPaidByCustomer() > 0 && $this->remainingBalance() <= 0.0;
+    }
+
+
     public function depositAmountActuallyPaid(): float
     {
-        return (float) ($this->deposit_amount_paid ?? 0);
+        return $this->netPaidByCustomer();
     }
 
 
     public function finalBalanceAmount(): float
     {
-        if ($this->deposit_amount_paid !== null) {
-            return max(round($this->totalValue() - $this->depositAmountActuallyPaid(), 2), 0);
-        }
-
-        return $this->totalValue();
+        return $this->remainingBalance();
     }
 }
