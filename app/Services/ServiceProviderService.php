@@ -153,6 +153,7 @@ $progress = (int) (($completed / count($steps)) * 100);
 public function getProviderById(int $providerId)
 {
     return ServiceProvider::with([
+        'user',
         'city.governorate',
         'categories',
         'workingHours',
@@ -170,7 +171,16 @@ public function getProviderById(int $providerId)
         ->withAvg('reviews', 'rating')
         ->withCount('reviews')
         ->where('id', $providerId)
-        ->where('approval_status', 'approved')
+
+    
+        ->when(
+            !auth('api')->check() ||
+            !auth('api')->user()->hasRole('admin'),
+            function ($query) {
+                $query->where('approval_status', 'approved');
+            }
+        )
+
         ->first();
 }
 }
