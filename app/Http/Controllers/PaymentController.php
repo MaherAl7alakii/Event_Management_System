@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Resources\Event\EventShowResource;
 use App\Http\Resources\Payment\PaymentResource;
 use App\Http\Resources\Payment\ProviderPayoutResource;
+use App\Http\Resources\RefundResource;
 use App\Models\Booking;
 use App\Models\Event;
 use App\Services\EventSubmissionService;
@@ -190,6 +191,34 @@ class PaymentController extends Controller
             $payouts->isEmpty()
                 ? __('messages.empty', ['resource' => __('messages.resources.payouts')])
                 : __('messages.fetched_success', ['resource' => __('messages.resources.payouts')]),
+            Response::HTTP_OK
+        );
+    }
+
+    public function refunds(Request $request): JsonResponse
+    {
+        $filters = $request->only(['from_date', 'to_date']);
+        $refunds = $this->paymentQuery->refundsForCustomer(auth()->user(), $filters);
+
+        return $this->apiResponse(
+            !$refunds->isEmpty() ? RefundResource::collection($refunds) : null,
+            $refunds->isEmpty()
+                ? __('messages.empty', ['resource' => __('messages.resources.refunds')])
+                : __('messages.fetched_success', ['resource' => __('messages.resources.refunds')]),
+            Response::HTTP_OK
+        );
+    }
+
+    public function adminRefunds(Request $request): JsonResponse
+    {
+        $filters = $request->only(['status', 'customer_id', 'from_date', 'to_date']);
+        $refunds = $this->paymentQuery->allRefunds($filters);
+
+        return $this->apiResponse(
+            !$refunds->isEmpty() ? RefundResource::collection($refunds) : null,
+            $refunds->isEmpty()
+                ? __('messages.empty', ['resource' => __('messages.resources.refunds')])
+                : __('messages.fetched_success', ['resource' => __('messages.resources.refunds')]),
             Response::HTTP_OK
         );
     }

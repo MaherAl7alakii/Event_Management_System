@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Booking;
 
+use App\Http\Resources\Payment\PaymentResource;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -74,6 +75,16 @@ class BookingShowResource extends JsonResource
                 'email' => $this->customer->email,
                 'avatar' => $this->customer->profile->avatar,
             ],
+
+//            'payments'       => PaymentResource::collection($this->payments),
+//            'payments' => PaymentResource::collection(
+//                $this->whenLoaded('bookingLedgerEntries', function () {
+//                    return $this->bookingLedgerEntries
+//                        ->pluck('payment')
+//                        ->filter()
+//                        ->unique('id');
+//                })
+//            ),
 
             'submitted_at' => $this->whenNotNull($this->submitted_at?->format('Y-m-d H:i:s')),
             'accepted_at'  => $this->whenNotNull($this->accepted_at?->format('Y-m-d H:i:s')),

@@ -71,6 +71,32 @@ class ProviderPayoutService
     }
 
 
+
+    public function cancelScheduledPayouts(Booking $booking): void
+    {
+        ProviderPayout::where('booking_id', $booking->id)
+            ->where('status', ProviderPayoutStatus::SCHEDULED_FOR_COMPLETION->value)
+            ->update(['status' => ProviderPayoutStatus::CANCELLED->value]);
+    }
+
+
+
+    public function reconcileForBooking(
+        Booking $booking,
+        float $targetAmount,
+        ProviderPayoutReason $reason,
+        ?Payment $payment = null,
+    ): ?ProviderPayout {
+        $this->cancelScheduledPayouts($booking);
+
+        if ($targetAmount <= 0) {
+            return null;
+        }
+
+        return $this->schedule($booking, $targetAmount, $reason, $payment);
+    }
+
+
     public function scheduleReleaseForCompletedBooking(Booking $booking): void
     {
         $releaseAt = now()->addHours(self::RELEASE_GRACE_HOURS);
@@ -80,6 +106,18 @@ class ProviderPayoutService
             ->update([
                 'status'     => ProviderPayoutStatus::AWAITING_RELEASE->value,
                 'release_at' => $releaseAt,
+            ]);
+    }
+
+
+
+    public function releaseScheduledPayoutsImmediately(Booking $booking): void
+    {
+        ProviderPayout::where('booking_id', $booking->id)
+            ->where('status', ProviderPayoutStatus::SCHEDULED_FOR_COMPLETION->value)
+            ->update([
+                'status'     => ProviderPayoutStatus::AWAITING_RELEASE->value,
+                'release_at' => now()->addHours(self::RELEASE_GRACE_HOURS),
             ]);
     }
 

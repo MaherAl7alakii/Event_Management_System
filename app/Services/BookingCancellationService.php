@@ -4,7 +4,9 @@ namespace App\Services;
 
 use App\Enums\BookingStatus;
 use App\Enums\CancelledBy;
+use App\Enums\LedgerEntryType;
 use App\Enums\ProviderPayoutReason;
+use App\Enums\ProviderPayoutStatus;
 use App\Models\Booking;
 use App\Models\BookingLedgerEntry;
 use App\Models\Payment;
@@ -79,6 +81,8 @@ class BookingCancellationService
 
     private function handleProviderCancellation(Booking $booking): void
     {
+        $this->payouts->cancelScheduledPayouts($booking);
+
         $netPaid = $this->ledger->netPaidByCustomer($booking);
 
         if ($netPaid > 0) {
@@ -93,6 +97,7 @@ class BookingCancellationService
         $netPaid = $this->ledger->netPaidByCustomer($booking);
 
         if ($netPaid <= 0) {
+            $this->payouts->cancelScheduledPayouts($booking);
             return;
         }
 
@@ -100,34 +105,31 @@ class BookingCancellationService
         $extraPaid = round($netPaid - $depositShare, 2);
 
         if ($extraPaid <= 0) {
-            $this->scheduleImmediatePayout($booking, $netPaid, ProviderPayoutReason::CANCELLATION_DEPOSIT_SHARE);
+            $this->reconcilePayout($booking, $netPaid, ProviderPayoutReason::CANCELLATION_DEPOSIT_SHARE);
             return;
         }
 
         $hoursUntilBooking = now()->diffInHours($booking->startsAt(), false);
 
         if ($hoursUntilBooking <= self::NO_REFUND_THRESHOLD_HOURS) {
-            $this->scheduleImmediatePayout($booking, $netPaid, ProviderPayoutReason::CANCELLATION_FULL_AMOUNT);
+            $this->reconcilePayout($booking, $netPaid, ProviderPayoutReason::CANCELLATION_FULL_AMOUNT);
             return;
         }
 
-        $this->scheduleImmediatePayout($booking, $depositShare, ProviderPayoutReason::CANCELLATION_DEPOSIT_SHARE);
+        $this->reconcilePayout($booking, $depositShare, ProviderPayoutReason::CANCELLATION_DEPOSIT_SHARE);
         $this->refundAllocator->refundBookingShare($booking, $extraPaid, 'customer_cancelled_booking_partial_refund');
     }
 
 
-    private function scheduleImmediatePayout(Booking $booking, float $amount, ProviderPayoutReason $reason): void
-    {
-        if ($amount <= 0) {
-            return;
-        }
 
+    private function reconcilePayout(Booking $booking, float $amount, ProviderPayoutReason $reason): void
+    {
         $payment = $this->latestContributingPayment($booking);
 
-        $payout = $this->payouts->schedule($booking, $amount, $reason, $payment);
+        $payout = $this->payouts->reconcileForBooking($booking, $amount, $reason, $payment);
 
-        $payout->update([
-            'status'     => \App\Enums\ProviderPayoutStatus::AWAITING_RELEASE->value,
+        $payout?->update([
+            'status'     => ProviderPayoutStatus::AWAITING_RELEASE->value,
             'release_at' => now()->addHours(24),
         ]);
     }
@@ -136,10 +138,7 @@ class BookingCancellationService
     private function latestContributingPayment(Booking $booking): ?Payment
     {
         $paymentId = BookingLedgerEntry::where('booking_id', $booking->id)
-            ->whereIn('type', array_map(
-                fn ($t) => $t->value,
-                \App\Enums\LedgerEntryType::chargeTypes()
-            ))
+            ->whereIn('type', array_map(fn ($t) => $t->value, LedgerEntryType::chargeTypes()))
             ->whereNotNull('payment_id')
             ->orderByDesc('id')
             ->value('payment_id');
