@@ -7,7 +7,7 @@ use App\Models\Service;
 use App\Models\ServiceProvider;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-
+use Illuminate\Http\Request;
 class PackageService
 {
 
@@ -121,12 +121,42 @@ class PackageService
 
 
 
-    public function index($providerId)
-    {
-        return Package::with(['services','provider'])->where('service_provider_id',$providerId)
-        ->where('status','active')
-        ->get();
+    public function index($provider = null, Request $request)
+{
+    $query = Package::with(['services','provider'])->where('status', 'active');
+
+
+    if ($provider !== null) {
+        $query->where('service_provider_id', $provider);
     }
+
+    if ($request->filled('category_id')) {
+        $query->whereHas('services', function ($q) use ($request) {
+            $q->where('category_id', $request->category_id);
+        });
+    }
+
+    if ($request->filled('min_price')) {
+        $query->where('final_price', '>=', $request->min_price);
+    }
+
+    if ($request->filled('max_price')) {
+        $query->where('final_price', '<=', $request->max_price);
+    }
+
+    if ($request->filled('sort')) {
+
+        if ($request->sort === 'highest_price') {
+            $query->orderBy('final_price', 'desc');
+        }
+
+        if ($request->sort === 'lowest_price') {
+            $query->orderBy('final_price', 'asc');
+        }
+    }
+
+    return $query->get();
+}
 
 
 
