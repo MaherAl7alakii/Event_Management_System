@@ -10,6 +10,9 @@ use App\Models\ServiceProviderCategory;
 use App\Models\ServiceProviderDocument;
 use App\Models\Service;
 use Illuminate\Support\Str;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 class ServiceProviderService
 {
     private WorkingHoursService $workingHoursService;
@@ -18,59 +21,79 @@ class ServiceProviderService
     {
         $this->workingHoursService = $workingHoursService;
     }
-    public function updateOrCreateProvider(int $userId, array $data,bool $isCreate)
-    {
-        if (isset($data['avatar']) && $data['avatar'] instanceof \Illuminate\Http\UploadedFile) {
-            $provider = ServiceProvider::where('user_id', $userId)->first();
-            if ($provider && $provider->avatar) {
-                Storage::disk('public')->delete($provider->avatar);
-            }
-                    $user = auth()->user();
+   public function updateOrCreateProvider(int $userId, array $data, bool $isCreate)
+{
+    if (isset($data['first_name']) || isset($data['last_name'])) {
 
-$extension = $data['avatar']->getClientOriginalExtension();
+        $user = User::findOrFail($userId);
 
+        $currentName = explode(' ', trim($user->name), 2);
 
-$fileName = Str::slug($user->name) . '.' . $extension;
+        $firstName = $data['first_name']?? ($currentName[0] ?? '');
 
-$data['avatar'] = $data['avatar']->storeAs(
-    'avatars/providers',
-    $fileName,
-    'public'
-);
+        $lastName = $data['last_name']?? ($currentName[1] ?? '');
 
-        }
+        $user->update(['name' => trim($firstName . ' ' . $lastName),]);
 
-        $provider = ServiceProvider::updateOrCreate(
-            ["user_id" => $userId],
-            $data
-        );
-
-        if (isset($data["categories"])) {
-           $provider->categories()->sync($data["categories"]);
-        }
-
-        if (isset($data["documents"])) {
-            $provider->documents()->delete();
-            foreach ($data["documents"] as $documentUrl) {
-                $provider->documents()->create(["url" => $documentUrl]);
-            }
-        }
-
-        if (isset($data["portfolios"])) {
-            $provider->portfolios()->delete();
-            foreach ($data["portfolios"] as $portfolioItem) {
-                $provider->portfolios()->create($portfolioItem);
-            }
-        }
-
-        // if($isCreate)
-        //     $this->workingHoursService->createDefaultWorkingHours($provider);
-
-
-
-        return $provider;
+        unset($data['first_name'],$data['last_name']);
     }
 
+
+    if (isset($data['avatar']) &&$data['avatar'] instanceof \Illuminate\Http\UploadedFile) {
+
+        $provider = ServiceProvider::where('user_id',$userId)->first();
+
+        if ($provider && $provider->avatar) {
+            Storage::disk('public')->delete($provider->avatar);
+        }
+
+        $user = User::findOrFail($userId);
+
+        $extension = $data['avatar']->getClientOriginalExtension();
+
+        $fileName = Str::slug($user->name) . '.' . $extension;
+
+        $data['avatar'] = $data['avatar']->storeAs(
+            'avatars/providers',
+            $fileName,
+            'public'
+        );
+    }
+
+
+    $provider = ServiceProvider::updateOrCreate(['user_id' => $userId],$data);
+
+
+    if (isset($data['categories'])) {
+        $provider->categories()->sync(
+            $data['categories']
+        );
+    }
+
+
+
+    if (isset($data['documents'])) {
+        $provider->documents()->delete();
+
+        foreach ($data['documents'] as $documentUrl) {
+            $provider->documents()->create([
+                'url' => $documentUrl,
+            ]);
+        }
+    }
+
+    if (isset($data['portfolios'])) {
+        $provider->portfolios()->delete();
+
+        foreach ($data['portfolios'] as $portfolioItem) {
+            $provider->portfolios()->create(
+                $portfolioItem
+            );
+        }
+    }
+
+    return $provider;
+}
     public function getProviderByUserId(int $userId)
     {
         return ServiceProvider::with(['user', 'city.governorate', 'categories', 'documents', 'portfolios','workingHours'])
@@ -182,5 +205,20 @@ public function getProviderById(int $providerId)
         )
 
         ->first();
+}
+public function changePassword(int $userId, string $oldPassword, string $newPassword): void
+{
+    $user = User::findOrFail($userId);
+
+    if (!Hash::check($oldPassword, $user->password)) {
+        throw new HttpException(
+            422,
+            'The old password is incorrect.'
+        );
+    }
+
+    $user->update([
+        'password' => Hash::make($newPassword),
+    ]);
 }
 }

@@ -12,6 +12,7 @@ use App\Http\Resources\UserServiceProviderResource;
 use App\Traits\ResponseTrait;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
+use App\Http\Requests\ChangePasswordRequest;
 
 class ServiceProviderController extends Controller
 {
@@ -92,6 +93,20 @@ public function showById(int $id): JsonResponse
     return $this->apiResponse(
         new UserServiceProviderResource($provider),
         'Service provider fetched successfully.',
+        Response::HTTP_OK
+    );
+}
+public function changePassword(ChangePasswordRequest $request): JsonResponse
+{
+    $this->providerService->changePassword(
+        auth()->id(),
+        $request->old_password,
+        $request->new_password
+    );
+
+    return $this->apiResponse(
+        null,
+        'Password changed successfully.',
         Response::HTTP_OK
     );
 }
