@@ -16,6 +16,7 @@ class BookingPriceService
 {
     public function __construct(
         private readonly BookingDeadlineCalculator $deadlines,
+        private readonly BookingRefundAllocator $refundAllocator,
     ) {
     }
 
@@ -108,9 +109,41 @@ class BookingPriceService
 
 
 
+
     private function applyAcceptedProposal(Booking $booking, BookingPriceProposal $proposal): Booking
     {
         $booking->update(['final_price' => $proposal->new_price]);
+        $booking->refresh();
+
+        $remaining = $booking->remainingBalance();
+
+        if ($remaining <= 0) {
+
+            $overpaid = $booking->overpaidAmount();
+
+            if ($overpaid > 0) {
+                $this->refundAllocator->refundBookingShare(
+                    $booking,
+                    $overpaid,
+                    'price_reduced_after_payment_refund'
+                );
+            }
+
+            if ($booking->status !== BookingStatus::CONFIRMED) {
+                $booking->update([
+                    'status'                    => BookingStatus::CONFIRMED->value,
+                    'final_payment_deadline_at' => null,
+                ]);
+
+                Log::info('Booking confirmed after price change fully covered by prior payments', [
+                    'booking_id' => $booking->id,
+                ]);
+            }
+
+            //---- Notification
+
+            return $booking->fresh();
+        }
 
         if ($booking->status === BookingStatus::DEPOSIT_PAID) {
 
