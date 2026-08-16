@@ -2,7 +2,7 @@
 
 namespace App\Http\Resources;
 
-use App\Http\Resources\Booking\BookingIndexResource;
+use App\Http\Resources\Booking\BookingShowResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -24,7 +24,7 @@ class BookingComplaintResource extends JsonResource
             'status'        => $this->status,
 
             'description' => $this->when($this->relationLoaded('booking'), $this->description),
-            'booking'       => new BookingIndexResource($this->whenLoaded('booking')),
+            'booking'       => new BookingShowResource($this->whenLoaded('booking')),
 
             'created_at'    => $this->created_at?->format('Y-m-d H:i'),
         ];

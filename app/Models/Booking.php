@@ -193,4 +193,12 @@ class Booking extends Model
     {
         return $this->remainingBalance();
     }
+
+    public function bookingLedgerEntrys()
+    {
+        return $this->hasMany(BookingLedgerEntry::class);
+    }
+
+//
+
 }

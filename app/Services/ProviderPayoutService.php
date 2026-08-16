@@ -22,6 +22,7 @@ class ProviderPayoutService
 
     public function __construct(
         private readonly StripeClient $stripe,
+        private readonly LedgerService $ledger,
     ) {
     }
 
@@ -37,9 +38,20 @@ class ProviderPayoutService
         }
 
 
+        $available = round(
+            $this->ledger->netPaidByCustomer($booking) - $this->ledger->totalAllocatedToProvider($booking),
+            2
+        );
+
+//        if (round($amount, 2) > $available + 0.01) {
+//            throw new Exception(
+//                "Payout amount ({$amount}) exceeds the amount available to allocate for booking #{$booking->id} (available: {$available})."
+//            );
+//        }
+
         $isAlreadyCompleted = $booking->status === BookingStatus::COMPLETED && $booking->completed_at !== null;
 
-        return ProviderPayout::create([
+        $payout = ProviderPayout::create([
             'booking_id'  => $booking->id,
             'provider_id' => $booking->provider_id,
             'payment_id'  => $payment?->id,
@@ -52,6 +64,36 @@ class ProviderPayoutService
                 ? $booking->completed_at->copy()->addHours(self::RELEASE_GRACE_HOURS)
                 : null,
         ]);
+
+        $this->ledger->recordPayout($booking, $payout);
+
+        return $payout;
+    }
+
+
+
+    public function cancelScheduledPayouts(Booking $booking): void
+    {
+        ProviderPayout::where('booking_id', $booking->id)
+            ->where('status', ProviderPayoutStatus::SCHEDULED_FOR_COMPLETION->value)
+            ->update(['status' => ProviderPayoutStatus::CANCELLED->value]);
+    }
+
+
+
+    public function reconcileForBooking(
+        Booking $booking,
+        float $targetAmount,
+        ProviderPayoutReason $reason,
+        ?Payment $payment = null,
+    ): ?ProviderPayout {
+        $this->cancelScheduledPayouts($booking);
+
+        if ($targetAmount <= 0) {
+            return null;
+        }
+
+        return $this->schedule($booking, $targetAmount, $reason, $payment);
     }
 
 
@@ -64,6 +106,18 @@ class ProviderPayoutService
             ->update([
                 'status'     => ProviderPayoutStatus::AWAITING_RELEASE->value,
                 'release_at' => $releaseAt,
+            ]);
+    }
+
+
+
+    public function releaseScheduledPayoutsImmediately(Booking $booking): void
+    {
+        ProviderPayout::where('booking_id', $booking->id)
+            ->where('status', ProviderPayoutStatus::SCHEDULED_FOR_COMPLETION->value)
+            ->update([
+                'status'     => ProviderPayoutStatus::AWAITING_RELEASE->value,
+                'release_at' => now()->addHours(self::RELEASE_GRACE_HOURS),
             ]);
     }
 
@@ -123,7 +177,16 @@ class ProviderPayoutService
                 return;
             }
 
-//            $amountInCents = (int) round($locked->amount * 100);
+            if (! $locked->payment || ! $locked->payment->stripe_charge_id) {
+                $locked->update([
+                    'status'         => ProviderPayoutStatus::FAILED->value,
+                    'failure_reason' => 'No underlying payment/charge found to fund this payout.',
+                ]);
+
+                Log::error('Payout release failed: missing underlying payment', ['payout_id' => $locked->id]);
+
+                return;
+            }
 
             try {
                 $charge = $this->stripe->charges->retrieve(
@@ -140,7 +203,6 @@ class ProviderPayoutService
                     'amount'             => $amountInCents,
                     'currency'           => $currency,
                     'destination'        => $provider->stripe_account_id,
-//                    'source_transaction' => $locked->payment?->stripe_charge_id,
                     'metadata'           => [
                         'provider_payout_id' => $locked->id,
                         'booking_id'         => $locked->booking_id,

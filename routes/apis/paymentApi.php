@@ -11,6 +11,7 @@ Route::middleware(['auth:api'])->group(function () {
 
 
     Route::get('/customer/payments', [PaymentController::class, 'payments'])->middleware('role:customer');
+    Route::get('/customer/payments/refunds', [PaymentController::class, 'refunds'])->middleware('role:customer');
 
     Route::prefix('provider')->middleware(['role:service_provider'])->group(function () {
         Route::get('/payouts', [PaymentController::class, 'payouts']);
@@ -22,6 +23,7 @@ Route::middleware(['auth:api'])->group(function () {
         Route::get('/payments', [PaymentController::class, 'adminPayments']);
 
         Route::get('/payouts', [PaymentController::class, 'adminPayouts']);
+        Route::get('/payments/refunds', [PaymentController::class, 'adminRefunds']);
     });
 
 });

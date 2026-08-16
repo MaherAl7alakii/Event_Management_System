@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Enums\BookingStatus;
 use App\Models\Booking;
 use App\Services\EventStatusResolver;
+use App\Services\ProviderPayoutService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -23,9 +24,9 @@ class CancelExpiredBookingJob implements ShouldQueue
     ) {
     }
 
-    public function handle(EventStatusResolver $statusResolver): void
+    public function handle(EventStatusResolver $statusResolver, ProviderPayoutService $payouts): void
     {
-        DB::transaction(function () use ($statusResolver) {
+        DB::transaction(function () use ($statusResolver, $payouts) {
             $booking = Booking::lockForUpdate()->find($this->bookingId);
 
             if (! $booking) {
@@ -36,16 +37,25 @@ class CancelExpiredBookingJob implements ShouldQueue
                 return;
             }
 
+
+            $depositWasPaidButFinalBalanceMissed = $booking->status === BookingStatus::DEPOSIT_PAID;
+
             $booking->update([
                 'status'      => BookingStatus::EXPIRED->value,
                 'rejected_at' => now(),
             ]);
 
+            if ($depositWasPaidButFinalBalanceMissed) {
+
+                $payouts->releaseScheduledPayoutsImmediately($booking);
+            }
+
             $statusResolver->resolveAndPersist($booking->event);
 
             Log::info('Booking auto-cancelled: payment deadline expired', [
-                'booking_id' => $booking->id,
-                'status_at_expiry' => $booking->getOriginal('status'),
+                'booking_id'                             => $booking->id,
+                'status_at_expiry'                       => $booking->getOriginal('status'),
+                'deposit_forfeited_to_provider'           => $depositWasPaidButFinalBalanceMissed,
             ]);
 
             //---- Notification
