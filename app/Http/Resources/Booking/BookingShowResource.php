@@ -18,16 +18,32 @@ class BookingShowResource extends JsonResource
     {
         $primaryImage = $this->service->images->where('is_primary', true)?->first() ?? $this->service->images?->first();
 
+        $originalPrice = $this->original_price;
+
+
+        $estimatedPrice = (float) $this->estimated_price;
+
+        $additionalCosts = $this->final_price !== null
+            ? max(0, (float) $this->final_price - $estimatedPrice)
+            : 0.0;
+
+        $finalPriceBeforeDiscount = $originalPrice + $additionalCosts;
+        $finalPriceAfterDiscount  = $estimatedPrice + $additionalCosts;
+
         return [
             'id'                => $this->id,
             'status'            => $this->status->value,
+            'package_id'         => $this->package_id,
             'booking_date'      => $this->booking_date->format('Y-m-d'),
             'start_time'        => $this->start_time->format('H:i'),
             'duration'          => $this->whenNotNull($this->duration),
             'end_time'          => $this->endsAt()->format('H:i'),
             'quantity'          => $this->whenNotNull($this->quantity),
             'customer_notes'    => $this->customer_notes,
-            'estimated_price'   => (float) $this->estimated_price,
+            'original_price'  => $this->original_price,
+            'estimated_price'        => (float) $this->estimated_price,
+            'additional_costs'           => $additionalCosts,
+            'original_final_price'=> $finalPriceBeforeDiscount,
             'final_price'       => (float) $this->final_price ?? $this->estimated_price ,
 
             'buffer_after_minutes'   => $this->buffer_after_minutes,

@@ -36,4 +36,10 @@ class Package extends Model
         return $this->belongsToMany(Service::class,'package_service');
     }
 
+
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class);
+    }
+
 }

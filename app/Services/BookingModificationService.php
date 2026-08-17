@@ -300,11 +300,11 @@ class BookingModificationService
             throw new Exception("Modification #{$modification->id} is no longer pending.");
         }
 
-        if ($modification->respond_by !== null && now()->gt($modification->respond_by)) {
-            $this->expire($modification, notify: false);
-
-            throw new Exception("Modification #{$modification->id} has expired.");
-        }
+//        if ($modification->respond_by !== null && now()->gt($modification->respond_by)) {
+//            $this->expire($modification, notify: false);
+//
+//            throw new Exception("Modification #{$modification->id} has expired.");
+//        }
     }
 
 

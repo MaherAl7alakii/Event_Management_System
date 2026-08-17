@@ -16,6 +16,18 @@ class BookingIndexResource extends JsonResource
     public function toArray(Request $request): array
     {
         $primaryImage = $this->service->images->where('is_primary', true)?->first() ?? $this->service->images?->first();
+        $originalPrice = $this->original_price;
+
+
+        $estimatedPrice = (float) $this->estimated_price;
+
+        $additionalCosts = $this->final_price !== null
+            ? max(0, (float) $this->final_price - $estimatedPrice)
+            : 0.0;
+
+        $finalPriceBeforeDiscount = $originalPrice + $additionalCosts;
+        $finalPriceAfterDiscount  = $estimatedPrice + $additionalCosts;
+
         return [
             'id'              => $this->id,
             'service'         => [
@@ -43,10 +55,16 @@ class BookingIndexResource extends JsonResource
                 'id'   => $this->event->city->id,
                 'name' => $this->event->city->name,
             ],
+            'package_id' => $this->package_id,
             'booking_date'    => $this->booking_date->format('Y-m-d'),
             'start_time'      => $this->start_time->format('H:i'),
             'status'          => $this->status->value,
-            'estimated_price' => (float) $this->estimated_price,
+            'original_price'  => $this->original_price,
+            'estimated_price'        => (float) $this->estimated_price,
+            'additional_costs'           => $additionalCosts,
+
+
+            'original_final_price'=> $finalPriceBeforeDiscount,
             'final_price'       => $this->final_price ==null ? (float) $this->estimated_price : (float) $this->final_price,
             'deposit_deadline'       => $this->formatDeadline($this->deposit_deadline_at),
             'final_payment_deadline' => $this->formatDeadline($this->final_payment_deadline_at),

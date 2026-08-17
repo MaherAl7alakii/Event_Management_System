@@ -56,8 +56,9 @@ class BookingModificationController extends Controller
 
     public function history(Booking $booking)
     {
+
         abort_unless(
-            in_array(auth()->id(), [$booking->customer_gid, $booking->provider_id], true),
+            in_array(auth()->id(), [$booking->customer_id, $booking->provider_id], true),
             403,
         );
 
@@ -78,10 +79,13 @@ class BookingModificationController extends Controller
         $booking = $modification->booking;
         $userId = auth()->id();
 
+
+
         abort_unless(
             in_array($userId, [$booking->customer_id, $booking->provider_id], true),
             403,
         );
+
 
         try {
             $updated = $userId === $booking->provider_id
