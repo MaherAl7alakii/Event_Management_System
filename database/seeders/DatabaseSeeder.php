@@ -35,6 +35,8 @@ class DatabaseSeeder extends Seeder
               ReviewSeeder::class,
               PackageSeeder::class,
                FavoriteSeeder::class,
+            EventTypeCategoryBudgetSeeder::class
+
         ]);
         // User::factory(10)->create();
 
