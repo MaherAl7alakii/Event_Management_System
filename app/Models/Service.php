@@ -45,7 +45,7 @@ class Service extends Model
     ];
 
     public function scopeFilter(Builder $query, array $filters): Builder
-
+    {
         $durationInHours = isset($filters['duration']) ? ((float) $filters['duration'] / 60) : 1;
         $quantity = isset($filters['quantity']) ? (int) $filters['quantity'] : 1;
         $bothMultiplier = $durationInHours * $quantity;
