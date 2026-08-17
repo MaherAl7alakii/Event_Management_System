@@ -45,8 +45,25 @@ class Service extends Model
     ];
 
     public function scopeFilter(Builder $query, array $filters): Builder
-    {
+
+        $durationInHours = isset($filters['duration']) ? ((float) $filters['duration'] / 60) : 1;
+        $quantity = isset($filters['quantity']) ? (int) $filters['quantity'] : 1;
+        $bothMultiplier = $durationInHours * $quantity;
+
+        $table = $query->getModel()->getTable();
+
         return $query
+            ->select("{$table}.*")
+            ->selectRaw("
+            (CASE pricing_type
+                WHEN 'fixed' THEN base_price
+                WHEN 'per_hour' THEN base_price * ?
+                WHEN 'per_person' THEN base_price * ?
+                WHEN 'per_hour_per_person' THEN base_price * ?
+                ELSE base_price
+            END) as estimated_price
+        ", [$durationInHours, $quantity, $bothMultiplier])
+
             ->when($filters['search_key'] ?? null, function ($query, $search) {
                 $query->whereHas('translations', function ($q) use ($search) {
                     $q->where('title', 'like', "%{$search}%")
@@ -82,7 +99,16 @@ class Service extends Model
             ->when(isset($filters['is_active']), function ($query) use ($filters) {
                 $isActive = filter_var($filters['is_active'], FILTER_VALIDATE_BOOLEAN);
                 $query->where('is_active', $isActive);
+            })
+            ->when($filters['budget'] ?? null, function ($query, $budget) {
+                $query->having('estimated_price', '<=', $budget);
+            })
+
+
+            ->when($filters['sort_by_estimated_price'] ?? null, function ($query, $direction) {
+                $query->orderBy('estimated_price', strtolower($direction) === 'desc' ? 'desc' : 'asc');
             });
+
 
     }
 
