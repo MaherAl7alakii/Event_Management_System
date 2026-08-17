@@ -209,29 +209,35 @@ $progress = (int) (($completed / count($steps)) * 100);
     'steps' => $steps,
 ];
 }
-public function getProviderById(int $providerId)
-{
-    return ServiceProvider::with([
-        'city.governorate',
-        'categories',
-        'workingHours',
-    ])
-        ->when(
-            auth('api')->check(),
-            function ($query) {
-                $query->withExists([
-                    'favorites as is_favorite' => function ($q) {
-                        $q->where('user_id', auth('api')->id());
-                    },
-                ]);
-            }
-        )
-        ->withAvg('reviews', 'rating')
-        ->withCount('reviews')
-        ->where('id', $providerId)
-        ->where('approval_status', 'approved')
-        ->first();
-}
+    public function getProviderById(int $providerId)
+    {
+        $user = auth('api')->user();
+
+        $isAdmin = $user && ($user->hasRole('admin') );
+
+        return ServiceProvider::with([
+            'city.governorate',
+            'categories',
+            'workingHours',
+        ])
+            ->when(
+                $user !== null,
+                function ($query) use ($user) {
+                    $query->withExists([
+                        'favorites as is_favorite' => function ($q) use ($user) {
+                            $q->where('user_id', $user->id);
+                        },
+                    ]);
+                }
+            )
+            ->withAvg('reviews', 'rating')
+            ->withCount('reviews')
+            ->where('id', $providerId)
+            ->when(!$isAdmin, function ($query) {
+                $query->where('approval_status', 'approved');
+            })
+            ->first();
+    }
 
 
     public function changePassword(int $userId, string $oldPassword, string $newPassword): void
