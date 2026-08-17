@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\BookingStatus;
 use App\Enums\PricingType;
+use App\Services\BookingService;
 use App\Services\LedgerService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -17,6 +18,7 @@ class Booking extends Model
     protected $fillable = [
         'service_id',
         'event_id',
+        'package_id',
         'customer_id',
         'provider_id',
         'pricing_type',
@@ -202,6 +204,23 @@ class Booking extends Model
     public function modifications()
     {
         return $this->hasMany(BookingModification::class);
+    }
+
+    public function package()
+    {
+        return $this->belongsTo(Package::class);
+    }
+
+    public function getOriginalPriceAttribute(): float
+    {
+        if (! $this->package_id) {
+            return (float) $this->estimated_price;
+        }
+
+        return app(BookingService::class)->calculateEstimatedPrice($this->service, [
+            'duration' => $this->duration,
+            'quantity' => $this->quantity,
+        ]);
     }
 
 
