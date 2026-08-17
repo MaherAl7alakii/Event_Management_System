@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Event;
 
+use App\Http\Resources\Booking\BookingShowResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -33,6 +34,8 @@ class EventShowResource extends JsonResource
             'service_count' => $this->bookings()->count(),
             'submitted_at'       => $this->submitted_at?->format('Y-m-d H:i:s'),
             'confirmed_at'       => $this->confirmed_at?->format('Y-m-d H:i:s'),
+
+            'bookings'           => BookingShowResource::collection($this->whenLoaded('bookings')),
         ];
     }
 }

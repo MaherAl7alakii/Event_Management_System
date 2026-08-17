@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\EventRequest;
+use App\Http\Requests\EventWithBookingsRequest;
 use App\Http\Resources\Event\EventIndexResource;
 use App\Http\Resources\Event\EventShowResource;
 use App\Models\Event;
@@ -107,5 +108,35 @@ class EventController extends Controller
             __('messages.deleted_success', ['resource' => __($this->resourceName)]),
             Response::HTTP_OK
         );
+    }
+
+    public function storeEventWithBookings(EventWithBookingsRequest $request)
+    {
+
+        $eventData = $request->only([
+            'event_type_id',
+            'other_type',
+            'city_id',
+            'title',
+            'cover_image',
+            'event_date',
+            'start_time',
+            'end_time',
+            'guests_count'
+        ]);
+
+
+        $eventData['customer_id'] = auth()->id();
+        $validatedData = $request->validated();
+        $bookings = $validatedData['bookings'];
+
+        $event = $this->eventService->createEventWithBookings($eventData, $bookings);
+
+
+        return response()->json([
+            'status'  => 201,
+            'message' => 'success',
+            new EventShowResource($event->load('bookings')),
+        ], 201);
     }
 }
