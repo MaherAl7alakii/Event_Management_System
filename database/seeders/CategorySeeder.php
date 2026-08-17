@@ -2,82 +2,97 @@
 
 namespace Database\Seeders;
 
-use App\Models\Category;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
 class CategorySeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
+        $categories = [
 
-        $categories =[
-            [
-                'icon' => 'https://res.cloudinary.com/dqf3h5hcs/image/upload/v1783347392/car-rental_uitffw.svg',
-                'ar'   => ['name' => 'مصور فوتوغرافي'],
-                'en'   => ['name' => 'Photographer'],
+            1 => [
+                'icon' => 'https://res.cloudinary.com/kzrnsaw4/image/upload/v1786998884/camera.png',
+                'ar'   => 'مصور فوتوغرافي',
+                'en'   => 'Photographer',
             ],
-            [
-                'icon' => 'https://res.cloudinary.com/dqf3h5hcs/image/upload/v1783347392/car-rental_uitffw.svg',
-                'ar'   => ['name' => 'قاعة فعاليات'],
-                'en'   => ['name' => 'Venue'],
+
+            2 => [
+                'icon' => 'https://res.cloudinary.com/kzrnsaw4/image/upload/v1786998885/venue.png',
+                'ar'   => 'قاعة فعاليات',
+                'en'   => 'Venue',
             ],
-            [
-                'icon' => 'https://res.cloudinary.com/dqf3h5hcs/image/upload/v1783347392/car-rental_uitffw.svg',
-                'ar'   => ['name' => 'موسيقى ودي جي'],
-                'en'   => ['name' => 'Music & DJ'],
+
+            3 => [
+                'icon' => 'https://res.cloudinary.com/kzrnsaw4/image/upload/v1786998884/music.png',
+                'ar'   => 'موسيقى ودي جي',
+                'en'   => 'Music & DJ',
             ],
-            [
-                'icon' => 'https://res.cloudinary.com/dqf3h5hcs/image/upload/v1783347392/car-rental_uitffw.svg',
-                'ar'   => ['name' => 'زينة وديكور'],
-                'en'   => ['name' => 'Decoration'],
+
+            4 => [
+                'icon' => 'https://res.cloudinary.com/kzrnsaw4/image/upload/v1786998885/decoration.png',
+                'ar'   => 'زينة وديكور',
+                'en'   => 'Decoration',
             ],
-            [
-                'icon' => 'https://res.cloudinary.com/dqf3h5hcs/image/upload/v1783347392/car-rental_uitffw.svg',
-                'ar'   => ['name' => 'حلويات وقوالب كيك'],
-                'en'   => ['name' => 'Desserts'],
+
+            5 => [
+                'icon' => 'https://res.cloudinary.com/kzrnsaw4/image/upload/v1786998884/cake.png',
+                'ar'   => 'حلويات وقوالب كيك',
+                'en'   => 'Desserts',
             ],
-            [
-                'icon' => 'https://res.cloudinary.com/dqf3h5hcs/image/upload/v1783347392/car-rental_uitffw.svg',
-                'ar'   => ['name' => 'ضيافة وبوفيه'],
-                'en'   => ['name' => 'Catering'],
+
+            6 => [
+                'icon' => 'https://res.cloudinary.com/kzrnsaw4/image/upload/v1786998884/catering.png',
+                'ar'   => 'ضيافة وبوفيه',
+                'en'   => 'Catering',
             ],
-            [
-                'icon' => 'https://res.cloudinary.com/dqf3h5hcs/image/upload/v1783347392/car-rental_uitffw.svg',
-                'ar'   => ['name' => 'خبيرة تجميل'],
-                'en'   => ['name' => 'Makeup Artist'],
+
+            7 => [
+                'icon' => 'https://res.cloudinary.com/kzrnsaw4/image/upload/v1786998884/makeup.png',
+                'ar'   => 'خبيرة تجميل',
+                'en'   => 'Makeup Artist',
             ],
-            [
-                'icon' => 'https://res.cloudinary.com/dqf3h5hcs/image/upload/v1783347392/car-rental_uitffw.svg',
-                'ar'   => ['name' => 'تأجير سيارات'],
-                'en'   => ['name' => 'Car Rental'],
+
+            8 => [
+                'icon' => 'https://res.cloudinary.com/kzrnsaw4/image/upload/v1786998884/car.png',
+                'ar'   => 'تأجير سيارات',
+                'en'   => 'Car Rental',
             ],
         ];
 
-        foreach ($categories as $categoryData) {
+        foreach ($categories as $id => $data) {
 
-            $categoryId = DB::table('categories')->insertGetId([
-                'icon'       => $categoryData['icon'],
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-
-            DB::table('category_translations')->insert([
+            DB::table('categories')->updateOrInsert(
+                ['id' => $id],
                 [
-                    'category_id' => $categoryId,
+                    'id'         => $id,
+                    'icon'       => $data['icon'],
+                    'is_active'  => true,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]
+            );
+
+            DB::table('category_translations')->updateOrInsert(
+                [
+                    'category_id' => $id,
                     'locale'      => 'ar',
-                    'name'        => $categoryData['ar']['name']
                 ],
                 [
-                    'category_id' => $categoryId,
-                    'locale'      => 'en',
-                    'name'        => $categoryData['en']['name']
-                ],
-            ]);
-        }
+                    'name' => $data['ar'],
+                ]
+            );
 
+            DB::table('category_translations')->updateOrInsert(
+                [
+                    'category_id' => $id,
+                    'locale'      => 'en',
+                ],
+                [
+                    'name' => $data['en'],
+                ]
+            );
+        }
     }
 }
+

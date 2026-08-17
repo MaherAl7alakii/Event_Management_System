@@ -2,73 +2,133 @@
 
 namespace Database\Seeders;
 
+use App\Models\Favorite;
+use App\Models\Service;
+use App\Models\ServiceProvider;
+use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 
 class FavoriteSeeder extends Seeder
 {
     public function run(): void
     {
-        $userIds = DB::table('users')
-            ->pluck('id')
-            ->toArray();
+        Favorite::query()->delete();
 
-        $serviceIds = DB::table('services')
-            ->pluck('id')
-            ->toArray();
+        $favorites = [
 
-        $providerIds = DB::table('service_providers')
-            ->pluck('id')
-            ->toArray();
+            [
+                'user' => 'mohammad.ali@gmail.com',
+                'provider' => 'ahmad.khalil@gmail.com',
+            ],
 
-        if (empty($userIds)) {
-            return;
+            [
+                'user' => 'sara.hassan@gmail.com',
+                'provider' => 'omar.saleh@gmail.com',
+            ],
+
+            [
+                'user' => 'rami.khalil@gmail.com',
+                'provider' => 'khaled.nasser@gmail.com',
+            ],
+
+            [
+                'user' => 'dima.ahmad@gmail.com',
+                'provider' => 'maya.ibrahim@gmail.com',
+            ],
+
+            [
+                'user' => 'karim.saleh@gmail.com',
+                'provider' => 'sara.ahmad@gmail.com',
+            ],
+
+            [
+                'user' => 'lama.omar@gmail.com',
+                'provider' => 'ahmad.khalil@gmail.com',
+            ],
+
+            [
+                'user' => 'hussein.nasser@gmail.com',
+                'provider' => 'yazan.mahmoud@gmail.com',
+            ],
+
+            [
+                'user' => 'jana.mahmoud@gmail.com',
+                'provider' => 'nour.ali@gmail.com',
+            ],
+        ];
+
+        foreach ($favorites as $data) {
+
+            $user = User::where('email', $data['user'])->first();
+
+            $provider = ServiceProvider::whereHas('user', function ($query) use ($data) {
+                $query->where('email', $data['provider']);
+            })->first();
+
+            if (!$user || !$provider) {
+                continue;
+            }
+
+            Favorite::create([
+                'user_id' => $user->id,
+                'favoritable_type' => ServiceProvider::class,
+                'favoritable_id' => $provider->id,
+            ]);
         }
 
-        foreach ($userIds as $userId) {
+        /*
+        |--------------------------------------------------------------------------
+        | Favorites for Services
+        |--------------------------------------------------------------------------
+        */
 
-          
-            $selectedServices = collect($serviceIds)
-                ->shuffle()
-                ->take(rand(2, min(5, count($serviceIds))));
+        $serviceFavorites = [
 
-            foreach ($selectedServices as $serviceId) {
+            [
+                'user' => 'mohammad.ali@gmail.com',
+                'title' => 'Wedding Photography Package',
+            ],
 
-                DB::table('favorites')->updateOrInsert(
-                    [
-                        'user_id' => $userId,
-                        'favoritable_type' => \App\Models\Service::class,
-                        'favoritable_id' => $serviceId,
-                    ],
-                    [
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ]
-                );
+            [
+                'user' => 'sara.hassan@gmail.com',
+                'title' => 'Wedding Decoration',
+            ],
+
+            [
+                'user' => 'karim.saleh@gmail.com',
+                'title' => 'Wedding DJ Package',
+            ],
+
+            [
+                'user' => 'dima.ahmad@gmail.com',
+                'title' => 'Custom Wedding Cake',
+            ],
+
+            [
+                'user' => 'hussein.nasser@gmail.com',
+                'title' => 'Wedding Buffet',
+            ],
+        ];
+
+        foreach ($serviceFavorites as $data) {
+
+            $user = User::where('email', $data['user'])->first();
+
+            $service = Service::whereHas('translations', function ($query) use ($data) {
+                $query
+                    ->where('locale', 'en')
+                    ->where('title', $data['title']);
+            })->first();
+
+            if (!$user || !$service) {
+                continue;
             }
 
-            
-            if (!empty($providerIds)) {
-
-                $selectedProviders = collect($providerIds)
-                    ->shuffle()
-                    ->take(rand(1, min(3, count($providerIds))));
-
-                foreach ($selectedProviders as $providerId) {
-
-                    DB::table('favorites')->updateOrInsert(
-                        [
-                            'user_id' => $userId,
-                            'favoritable_type' => \App\Models\ServiceProvider::class,
-                            'favoritable_id' => $providerId,
-                        ],
-                        [
-                            'created_at' => now(),
-                            'updated_at' => now(),
-                        ]
-                    );
-                }
-            }
+            Favorite::create([
+                'user_id' => $user->id,
+                'favoritable_type' => Service::class,
+                'favoritable_id' => $service->id,
+            ]);
         }
     }
 }

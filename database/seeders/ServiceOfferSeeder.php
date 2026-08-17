@@ -2,94 +2,115 @@
 
 namespace Database\Seeders;
 
+use App\Models\Service;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
 
 class ServiceOfferSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        $services = DB::table('services')
-            ->where('is_active', true)
-            ->get();
+        $offers = [
 
-        if ($services->isEmpty()) {
-            return;
-        }
+            'Wedding Photography Package' => [
+                'discount' => 20,
+                'start_date' => '2026-09-01',
+                'end_date' => '2026-09-30',
+                'is_active' => true,
+            ],
 
-        foreach ($services as $service) {
+            'Bridal Makeup' => [
+                'discount' => 15,
+                'start_date' => '2026-09-01',
+                'end_date' => '2026-09-30',
+                'is_active' => true,
+            ],
 
-            // مو كل الخدمات لازم يكون عليها عرض
-            if (rand(1, 100) > 60) {
+            'Wedding Decoration' => [
+                'discount' => 10,
+                'start_date' => '2026-09-05',
+                'end_date' => '2026-09-25',
+                'is_active' => true,
+            ],
+
+            'Wedding Hall' => [
+                'discount' => 15,
+                'start_date' => '2026-09-01',
+                'end_date' => '2026-10-01',
+                'is_active' => true,
+            ],
+
+            'DJ and Sound System' => [
+                'discount' => 20,
+                'start_date' => '2026-09-01',
+                'end_date' => '2026-09-30',
+                'is_active' => true,
+            ],
+
+            'Custom Wedding Cake' => [
+                'discount' => 10,
+                'start_date' => '2026-09-01',
+                'end_date' => '2026-09-30',
+                'is_active' => true,
+            ],
+
+            'Wedding Buffet' => [
+                'discount' => 12,
+                'start_date' => '2026-09-01',
+                'end_date' => '2026-09-30',
+                'is_active' => true,
+            ],
+
+            'Luxury Car Rental' => [
+                'discount' => 15,
+                'start_date' => '2026-09-01',
+                'end_date' => '2026-09-30',
+                'is_active' => true,
+            ],
+
+            'Event Photography' => [
+                'discount' => 10,
+                'start_date' => '2026-09-10',
+                'end_date' => '2026-09-30',
+                'is_active' => true,
+            ],
+
+            'Event Decoration' => [
+                'discount' => 10,
+                'start_date' => '2026-09-01',
+                'end_date' => '2026-09-30',
+                'is_active' => true,
+            ],
+        ];
+
+        foreach ($offers as $title => $data) {
+
+            $service = Service::whereHas('translations', function ($query) use ($title) {
+                $query->where('locale', 'en')
+                    ->where('title', $title);
+            })->first();
+
+            if (!$service) {
                 continue;
             }
 
-            $offerExists = DB::table('service_offers')
-                ->where('service_id', $service->id)
-                ->exists();
+            $originalPrice = $service->base_price;
 
-            if ($offerExists) {
-                continue;
-            }
+            $offerPrice = $originalPrice -
+                ($originalPrice * $data['discount'] / 100);
 
-            $discount = collect([10, 15, 20, 25, 30, 35])->random();
-
-            $originalPrice = (float) $service->base_price;
-
-            $offerPrice = round(
-                $originalPrice - ($originalPrice * $discount / 100),
-                2
+            $service->offer()->updateOrCreate(
+                [
+                    'service_id' => $service->id,
+                ],
+                [
+                    'discount' => $data['discount'],
+                    'original_price' => $originalPrice,
+                    'offer_price' => $offerPrice,
+                    'start_date' => $data['start_date'],
+                    'end_date' => $data['end_date'],
+                    'is_active' => $data['is_active'],
+                ]
             );
-
-            /*
-             * نوزع العروض بين:
-             * - عروض فعالة حالياً
-             * - عروض مستقبلية
-             * - عروض منتهية
-             */
-
-            $offerType = rand(1, 3);
-
-            if ($offerType === 1) {
-
-                // عرض فعال حالياً
-                $startDate = Carbon::today()->subDays(rand(1, 10));
-                $endDate = Carbon::today()->addDays(rand(5, 30));
-
-                $isActive = true;
-
-            } elseif ($offerType === 2) {
-
-                // عرض مستقبلي
-                $startDate = Carbon::today()->addDays(rand(3, 15));
-                $endDate = $startDate->copy()->addDays(rand(7, 30));
-
-                $isActive = true;
-
-            } else {
-
-                // عرض منتهي
-                $endDate = Carbon::today()->subDays(rand(1, 15));
-                $startDate = $endDate->copy()->subDays(rand(7, 30));
-
-                $isActive = true;
-            }
-
-            DB::table('service_offers')->insert([
-                'service_id'     => $service->id,
-                'discount'       => $discount,
-                'original_price' => $originalPrice,
-                'offer_price'    => $offerPrice,
-                'start_date'     => $startDate,
-                'end_date'       => $endDate,
-                'is_active'      => $isActive,
-                'created_at'     => now(),
-                'updated_at'     => now(),
-            ]);
         }
     }
 }

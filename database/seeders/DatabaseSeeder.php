@@ -21,27 +21,60 @@ class DatabaseSeeder extends Seeder
     {
 
 
-        $this->call([
-            GovernorateSeeder::class,
-            CitySeeder::class,
-            CategorySeeder::class,
-            UserSeeder::class,
-            ServiceSeeder::class,
-            EventTypeSeeder::class,
-//            ServiceProviderSeeder::class,
-            WorkingHoursSeeder::class,
-             ServiceOfferSeeder::class,
-             ServiceProviderGallerySeeder::class,
-              ReviewSeeder::class,
-              PackageSeeder::class,
-               FavoriteSeeder::class,
-        ]);
-        // User::factory(10)->create();
+       $this->call([
+          GovernorateSeeder::class,
+   CitySeeder::class,
+     CategorySeeder::class,
+    //RolesAndPermissionsSeeder::class,
 
-//        User::factory()->create([
-//            'name' => 'Test User',
-//            'email' => 'test@example.com',
-//        ]);
+    UserSeeder::class,
+StripeAccountSeeder::class,
+    ServiceProviderCategorySeeder::class,
+    PortfolioSeeder::class,
+   // ServiceProviderDocumentSeeder::class,
+    WorkingHoursSeeder::class,
+    TimeOffSeeder::class,
 
+
+ EventTypeSeeder::class,
+    EventSeeder::class,
+
+        EventSeeder::class,
+
+    ServiceSeeder::class,
+    ServiceImageSeeder::class,
+    FeatureSeeder::class,
+    ServiceLinkSeeder::class,
+
+    ServiceOfferSeeder::class,
+
+    PackageSeeder::class,
+   // PackageServiceSeeder::class,
+
+   ServiceProviderGallerySeeder::class,
+
+   // ServiceSeeder::class,
+
+    BookingSeeder::class,
+
+    PaymentSeeder::class,
+
+    PaymentTransferSeeder::class,
+
+    ProviderPayoutSeeder::class,
+
+    BookingComplaintSeeder::class,
+    
+
+    BookingPriceProposalSeeder::class,
+ServiceProviderGallerySeeder::class,
+    RefundSeeder::class,
+    SearchHistorySeeder::class,
+    ReviewSeeder::class,
+    FavoriteSeeder::class,
+    ConversationSeeder::class,
+    NotificationSeeder::class,
+       MessageSeeder::class,
+]);
     }
 }

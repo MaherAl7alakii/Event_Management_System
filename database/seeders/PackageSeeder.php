@@ -2,122 +2,190 @@
 
 namespace Database\Seeders;
 
+use App\Models\Package;
+use App\Models\Service;
+use App\Models\ServiceProvider;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 
 class PackageSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-      
-        $providers = DB::table('service_providers')->get();
+        $packages = [
 
-        if ($providers->isEmpty()) {
-            return;
-        }
+            'ahmad.khalil@gmail.com' => [
+                [
+                    'name' => 'Complete Wedding Photography',
+                    'description' => 'A complete photography package for weddings and special occasions.',
+                    'discount' => 15,
+                    'services' => [
+                        'Wedding Photography Package',
+                        'Event Photography',
+                    ],
+                    'image' => 'https://res.cloudinary.com/kzrnsaw4/image/upload/v1786968800/package.jpg',
+                ],
+            ],
 
-        $packageNames = [
-            'باقة المناسبات الذهبية',
-            'باقة الحفل المتكاملة',
-            'الباقة الأساسية',
-            'الباقة المميزة',
-            'باقة الحفل الفاخر',
-            'باقة المناسبات الخاصة',
+            'lina.hassan@gmail.com' => [
+                [
+                    'name' => 'Bridal Beauty Package',
+                    'description' => 'Complete bridal makeup services for the wedding day.',
+                    'discount' => 10,
+                    'services' => [
+                        'Bridal Makeup',
+                        'Event Makeup',
+                    ],
+                    'image' => 'https://res.cloudinary.com/kzrnsaw4/image/upload/v1786968800/package.jpg',
+                ],
+            ],
+
+            'omar.saleh@gmail.com' => [
+                [
+                    'name' => 'Wedding Decoration Package',
+                    'description' => 'Complete decoration package including wedding and floral decoration.',
+                    'discount' => 15,
+                    'services' => [
+                        'Wedding Decoration',
+                        'Floral Decoration Service',
+                    ],
+                    'image' => 'https://res.cloudinary.com/kzrnsaw4/image/upload/v1786968800/package.jpg',
+                ],
+            ],
+
+            'sara.ahmad@gmail.com' => [
+                [
+                    'name' => 'Wedding Venue Package',
+                    'description' => 'Elegant venue options for weddings and private events.',
+                    'discount' => 10,
+                    'services' => [
+                        'Wedding Hall',
+                        'Private Event Hall',
+                    ],
+                    'image' => 'https://res.cloudinary.com/kzrnsaw4/image/upload/v1786968800/package.jpg',
+                ],
+            ],
+
+            'khaled.nasser@gmail.com' => [
+                [
+                    'name' => 'Complete DJ Package',
+                    'description' => 'Professional DJ and sound services for weddings and events.',
+                    'discount' => 15,
+                    'services' => [
+                        'DJ and Sound System',
+                        'Wedding DJ Package',
+                    ],
+                    'image' => 'https://res.cloudinary.com/kzrnsaw4/image/upload/v1786968800/package.jpg',
+                ],
+            ],
+
+            'maya.ibrahim@gmail.com' => [
+                [
+                    'name' => 'Wedding Dessert Package',
+                    'description' => 'Wedding cake and dessert table package.',
+                    'discount' => 10,
+                    'services' => [
+                        'Custom Wedding Cake',
+                        'Dessert Table',
+                    ],
+                    'image' => 'https://res.cloudinary.com/kzrnsaw4/image/upload/v1786968800/package.jpg',
+                ],
+            ],
+
+            'yazan.mahmoud@gmail.com' => [
+                [
+                    'name' => 'Wedding Catering Package',
+                    'description' => 'Complete catering service for weddings and private events.',
+                    'discount' => 10,
+                    'services' => [
+                        'Wedding Buffet',
+                        'Event Catering Service',
+                    ],
+                    'image' => 'https://res.cloudinary.com/kzrnsaw4/image/upload/v1786968800/package.jpg',
+                ],
+            ],
+
+            'rana.samir@gmail.com' => [
+                [
+                    'name' => 'Wedding Car Package',
+                    'description' => 'Luxury transportation for weddings and special occasions.',
+                    'discount' => 15,
+                    'services' => [
+                        'Luxury Car Rental',
+                        'Wedding Car Service',
+                    ],
+                    'image' => 'https://res.cloudinary.com/kzrnsaw4/image/upload/v1786968800/package.jpg',
+                ],
+            ],
+
+            'tarek.ibrahim@gmail.com' => [
+                [
+                    'name' => 'Photography and DJ Package',
+                    'description' => 'Photography and music services for complete event coverage.',
+                    'discount' => 15,
+                    'services' => [
+                        'Event Photography',
+                        'DJ and Event Sound',
+                    ],
+                    'image' => 'https://res.cloudinary.com/kzrnsaw4/image/upload/v1786968800/package.jpg',
+                ],
+            ],
+
+            'nour.ali@gmail.com' => [
+                [
+                    'name' => 'Event Decoration and Venue Package',
+                    'description' => 'Complete event setup combining decoration and venue services.',
+                    'discount' => 15,
+                    'services' => [
+                        'Event Decoration',
+                        'Outdoor Event Venue',
+                    ],
+                    'image' => 'https://res.cloudinary.com/kzrnsaw4/image/upload/v1786968800/package.jpg',
+                ],
+            ],
         ];
 
-        $packageDescriptions = [
-            'باقة متكاملة تشمل مجموعة من الخدمات المناسبة للمناسبات والاحتفالات.',
-            'باقة مصممة لتوفير تجربة متكاملة للعميل مع مجموعة من الخدمات المميزة.',
-            'مجموعة من الخدمات الأساسية بسعر مناسب لتلبية احتياجات المناسبة.',
-            'باقة مميزة تجمع عدة خدمات احترافية ضمن عرض واحد.',
-            'باقة فاخرة ومتكاملة للمناسبات الكبيرة والفعاليات الخاصة.',
-            'حل متكامل للمناسبات مع إمكانية الاستفادة من عدة خدمات بسعر مخفض.',
-        ];
+        foreach ($packages as $email => $providerPackages) {
 
-        $packageImages = [
-            'https://res.cloudinary.com/dqf3h5hcs/image/upload/v1783239817/photographer-a-beginners-guide-to-taking-amazing-photos-2_l4xr0h.webp',
-            'https://res.cloudinary.com/dqf3h5hcs/image/upload/v1783239464/6uhoF_hyijfk.jpg',
-            'https://res.cloudinary.com/dqf3h5hcs/image/upload/v1783240185/images_1_rbc9yx.jpg',
-            'https://res.cloudinary.com/dgxlkhjw6/image/upload/v1755098151/photography_stock-770x365_nhpgqt.jpg',
-        ];
+            $provider = ServiceProvider::whereHas('user', function ($query) use ($email) {
+                $query->where('email', $email);
+            })->first();
 
-        foreach ($providers as $provider) {
-
-            $services = DB::table('services')
-                ->where('provider_id', $provider->user_id)
-                ->where('is_active', true)
-                ->get();
-
-        
-            if ($services->count() < 2) {
+            if (!$provider) {
                 continue;
             }
 
-            
-            $packagesCount = rand(1, min(3, $services->count() - 1));
+            $provider->packages()->delete();
 
-            for ($i = 0; $i < $packagesCount; $i++) {
+            foreach ($providerPackages as $packageData) {
 
-                  $numberOfServices = rand(2,min(4, $services->count()));
+                $services = Service::whereHas('translations', function ($query) use ($packageData) {
+                    $query->where('locale', 'en')
+                        ->whereIn('title', $packageData['services']);
+                })
+                ->where('provider_id', $provider->user_id)
+                ->get();
 
-                $selectedServices = $services
-                    ->shuffle()
-                    ->take($numberOfServices);
-
-               
-                $totalPrice = $selectedServices->sum(function ($service) {
-                    return (float) $service->base_price;
-                });
-
-            
-                $discount = collect([
-                    10,
-                    15,
-                    20,
-                    25,
-                    30,
-                ])->random();
-
-                
-                $finalPrice = round($totalPrice - ($totalPrice * $discount / 100),2);
-
-                
-                $status = rand(1, 100) <= 85
-                    ? 'active'
-                    : 'hidden';
-
-                
-                $packageId = DB::table('packages')->insertGetId([
-                    'service_provider_id' => $provider->id,
-                    'image'               => collect($packageImages)->random(),
-                    'name'                => collect($packageNames)->random(),
-                    'description'         => collect($packageDescriptions)->random(),
-                    'total_price'         => $totalPrice,
-                    'discount'            => $discount,
-                    'final_price'          => $finalPrice,
-                    'status'              => $status,
-                    'created_at'          => now(),
-                    'updated_at'          => now(),
-                ]);
-
-                /*
-                 * ربط الخدمات بالـ Package
-                 */
-                $packageServices = [];
-
-                foreach ($selectedServices as $service) {
-                    $packageServices[] = [
-                        'package_id' => $packageId,
-                        'service_id' => $service->id,
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ];
+                if ($services->count() !== count($packageData['services'])) {
+                    continue;
                 }
 
-                DB::table('package_service')->insert($packageServices);
+                $totalPrice = $services->sum('base_price');
+
+                $discountAmount = $totalPrice * $packageData['discount'] / 100;
+
+                $finalPrice = $totalPrice - $discountAmount;
+
+                $package = $provider->packages()->create([
+                    'image' => $packageData['image'],
+                    'name' => $packageData['name'],
+                    'description' => $packageData['description'],
+                    'total_price' => $totalPrice,
+                    'discount' => $packageData['discount'],
+                    'final_price' => $finalPrice,
+                    'status' => 'active',
+                ]);
+
+                $package->services()->sync($services->pluck('id'));
             }
         }
     }
