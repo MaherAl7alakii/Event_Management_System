@@ -12,4 +12,10 @@ class Notification extends BaseNotification
     use SoftDeletes;
 
     protected $dates = ['deleted_at'];
+
+    public function notifications()
+    {
+        return $this->morphMany(Notification::class, 'notifiable')
+            ->latest();
+    }
 }

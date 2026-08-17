@@ -199,6 +199,13 @@ class Booking extends Model
         return $this->hasMany(BookingLedgerEntry::class);
     }
 
+    public function modifications()
+    {
+        return $this->hasMany(BookingModification::class);
+    }
+
+
+
 //
 
 }
