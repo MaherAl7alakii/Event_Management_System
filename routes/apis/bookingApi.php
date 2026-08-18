@@ -3,6 +3,7 @@
 use App\Http\Controllers\BookingCancellationController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\BookingStatusController;
+use App\Http\Controllers\PackageBookingController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('bookings')->middleware(['auth:api','verified.email','setLanguage','provider.approved','check.banned'])->group(function () {
@@ -25,6 +26,9 @@ Route::prefix('bookings')->middleware(['auth:api','verified.email','setLanguage'
         Route::post('/reject', [BookingStatusController::class, 'reject'])->middleware('permission:accept_or_reject_booking');
 
     });
+
+    Route::post('/events/{event}/packages/{package}', [PackageBookingController::class, 'store'])
+        ->name('events.packages.book');
 
 });
 

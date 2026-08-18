@@ -3,11 +3,15 @@
 namespace App\Services;
 
 use App\Enums\BookingStatus;
+use App\Enums\LedgerEntryType;
 use App\Enums\PriceProposalStatus;
+use App\Enums\ProviderPayoutReason;
 use App\Http\Resources\Booking\BookingShowResource;
 use App\Http\Resources\BookingPriceProposalResource;
 use App\Models\Booking;
+use App\Models\BookingLedgerEntry;
 use App\Models\BookingPriceProposal;
+use App\Models\Payment;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -16,6 +20,8 @@ class BookingPriceService
 {
     public function __construct(
         private readonly BookingDeadlineCalculator $deadlines,
+        private readonly BookingRefundAllocator $refundAllocator,
+        private readonly ProviderPayoutService $payouts,
     ) {
     }
 
@@ -111,27 +117,57 @@ class BookingPriceService
     private function applyAcceptedProposal(Booking $booking, BookingPriceProposal $proposal): Booking
     {
         $booking->update(['final_price' => $proposal->new_price]);
+        $booking->refresh();
 
         if ($booking->status === BookingStatus::DEPOSIT_PAID) {
-
+            // كان بالفعل بانتظار رصيد نهائي — يُمتص التعديل تلقائياً في
+            // remainingBalance() الجديدة، لا حاجة لأي حركة مالية إضافية.
             Log::info('Price change absorbed into remaining final balance', ['booking_id' => $booking->id]);
 
             return $booking->fresh();
         }
 
 
+        $netPaid = $booking->netPaidByCustomer();
+        $depositShare = min($booking->depositAmount(), $netPaid);
+        $refundAmount = round($netPaid - $depositShare, 2);
+
+        if ($refundAmount > 0) {
+            $payment = $this->latestContributingPayment($booking);
+
+            $this->payouts->reconcileForBooking($booking, $depositShare, ProviderPayoutReason::DEPOSIT, $payment);
+
+            $this->refundAllocator->refundBookingShare($booking, $refundAmount, 'price_edited_after_full_payment_refund');
+        }
+
         $booking->update([
             'status'                    => BookingStatus::DEPOSIT_PAID->value,
+            'deposit_deadline_at'       => null,
             'final_payment_deadline_at' => $this->deadlines->finalPaymentDeadline($booking->fresh()),
         ]);
 
-        Log::warning('Booking reverted to deposit_paid due to accepted price increase after full payment', [
-            'booking_id' => $booking->id,
+        Log::warning('Booking reverted to deposit_paid due to price change after full payment; excess refunded to customer', [
+            'booking_id'     => $booking->id,
+            'refund_amount'  => $refundAmount,
+            'deposit_share'  => $depositShare,
         ]);
 
         //---- Notification
 
         return $booking->fresh();
+    }
+
+
+
+    private function latestContributingPayment(Booking $booking): ?Payment
+    {
+        $paymentId = BookingLedgerEntry::where('booking_id', $booking->id)
+            ->whereIn('type', array_map(fn ($t) => $t->value, LedgerEntryType::chargeTypes()))
+            ->whereNotNull('payment_id')
+            ->orderByDesc('id')
+            ->value('payment_id');
+
+        return $paymentId ? Payment::find($paymentId) : null;
     }
 
 

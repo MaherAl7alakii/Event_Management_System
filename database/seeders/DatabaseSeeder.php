@@ -75,6 +75,7 @@ ServiceProviderGallerySeeder::class,
     ConversationSeeder::class,
     NotificationSeeder::class,
        MessageSeeder::class,
+           EventTypeCategoryBudgetSeeder::class,
 ]);
     }
 }

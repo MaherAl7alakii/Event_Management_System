@@ -117,5 +117,6 @@ return [
 
         'payments' => 'payments',
         'payouts'  => 'payouts',
+        'refunds' => 'refunds',
     ]
 ];

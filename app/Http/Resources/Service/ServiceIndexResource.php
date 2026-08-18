@@ -25,6 +25,8 @@ if ($offer &&(!$offer->is_active ||today()->gt($offer->end_date))) {
         return [
             'id'               => $this->id,
             'title'            => $this->title,
+            'estimated_price' => (float) ($this->estimated_price ?? $this->base_price),
+            'pricing_type' => $this->pricing_type,
             'provider_name'    => $this->provider->serviceProvider->business_name,
              'is_favorite' =>(bool) ($this->is_favorite ?? false),
             'base_price'       => $this->base_price,

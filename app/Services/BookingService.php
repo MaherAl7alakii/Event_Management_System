@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\BookingStatus;
+use App\Exceptions\BookingBelongsToPackageException;
 use App\Exceptions\ServiceUnavailableException;
 use App\Models\Booking;
 use App\Models\Event;
@@ -21,7 +22,7 @@ class BookingService
     ) {
     }
 
-    public function getUserBookings($user, ?string $status,?string $date )
+    public function getUserBookings($user, ?string $status, ?string $date)
     {
         return Booking::with(['service', 'customer', 'provider'])
             ->where('status', '!=', BookingStatus::DRAFT->value)
@@ -51,7 +52,6 @@ class BookingService
     {
         $service = Service::findOrFail($data['service_id']);
 
-
         $this->assertAvailable(
             service: $service,
             bookingDate: $data['booking_date'],
@@ -59,21 +59,33 @@ class BookingService
             duration: $data['duration'] ?? null,
         );
 
-        $data['base_price'] = $service->base_price;
-        $data['pricing_type'] = $service->pricing_type;
-        $data['estimated_price'] = $this->calculateEstimatedPrice($service, $data);
-        $data['status'] = BookingStatus::DRAFT->value;
-        $data['customer_id'] = $customerId;
-        $data['provider_id'] = $service->provider_id;
+        return $this->createBookingFromData(array_merge($data, [
+            'estimated_price_override' => $this->calculateEstimatedPrice($service, $data),
+        ]), $customerId);
+    }
+
+
+    public function createBookingFromData(array $data, int $customerId): Booking
+    {
+        $service = Service::findOrFail($data['service_id']);
+        $estimatedPrice = $data['estimated_price_override'];
+        unset($data['estimated_price_override']);
+
+        $data['base_price']      = $service->base_price;
+        $data['pricing_type']    = $service->pricing_type;
+        $data['estimated_price'] = $estimatedPrice;
+        $data['status']          = BookingStatus::DRAFT->value;
+        $data['customer_id']     = $customerId;
+        $data['provider_id']     = $service->provider_id;
 
         return Booking::create($data);
     }
 
-    /**
-     * @throws ServiceUnavailableException
-     */
+
     public function updateBooking(Booking $booking, array $data): Booking
     {
+        $this->assertNotPartOfPackage($booking);
+
         $service = $booking->service;
 
         $touchesSchedule = isset($data['start_time']) || isset($data['duration']);
@@ -102,10 +114,15 @@ class BookingService
         return $booking->fresh(['service', 'customer', 'provider', 'event.city.governorate']);
     }
 
-
-    public function respondToBooking(Booking $booking, string $action, ?int $bufferAfterMinutes = null,?float $finalPrice = null): Booking
+    public function respondToBooking(Booking $booking, string $action, ?int $bufferAfterMinutes = null, ?float $finalPrice = null): Booking
     {
-        DB::transaction(function () use ($booking, $action, $bufferAfterMinutes) {
+        if ($booking->package_id !== null) {
+            $this->respondToPackage($booking, $action, $bufferAfterMinutes);
+
+            return $booking->fresh(['service', 'customer', 'provider', 'event.city.governorate']);
+        }
+
+        DB::transaction(function () use ($booking, $action, $bufferAfterMinutes, $finalPrice) {
             if ($action === 'accept') {
                 $this->assertAvailable(
                     service: $booking->service,
@@ -116,14 +133,13 @@ class BookingService
                 );
 
                 $booking->update([
-                    'status'                => BookingStatus::ACCEPTED->value,
-                    'accepted_at'            => now(),
-                    'buffer_after_minutes'   => $bufferAfterMinutes,
-                    'final_price' => round($finalPrice ?? (float) $booking->estimated_price, 2),
+                    'status'               => BookingStatus::ACCEPTED->value,
+                    'accepted_at'          => now(),
+                    'buffer_after_minutes' => $bufferAfterMinutes,
+                    'final_price'          => round($finalPrice ?? (float) $booking->estimated_price, 2),
                 ]);
                 $booking->deposit_deadline_at = $this->deadlines->depositDeadline($booking);
                 $booking->save();
-
             } elseif ($action === 'reject') {
                 $booking->update([
                     'status'      => BookingStatus::REJECTED->value,
@@ -132,7 +148,6 @@ class BookingService
             }
 
             $this->statusResolver->resolveAndPersist($booking->event);
-
         });
 
         $booking = $booking->fresh(['service', 'customer', 'provider', 'event.city.governorate']);
@@ -144,6 +159,64 @@ class BookingService
         };
 
         return $booking;
+    }
+
+
+    private function respondToPackage(Booking $triggerBooking, string $action, ?int $bufferAfterMinutes): void
+    {
+        DB::transaction(function () use ($triggerBooking, $action, $bufferAfterMinutes) {
+            $packageBookings = Booking::where('event_id', $triggerBooking->event_id)
+                ->where('package_id', $triggerBooking->package_id)
+                ->lockForUpdate()
+                ->get();
+
+            if ($action === 'accept') {
+
+                foreach ($packageBookings as $booking) {
+                    $this->assertAvailable(
+                        service: $booking->service,
+                        bookingDate: $booking->booking_date->toDateString(),
+                        startTime: $booking->start_time->format('H:i'),
+                        duration: $booking->duration,
+                        excludeBookingId: $booking->id,
+                    );
+                }
+
+                foreach ($packageBookings as $booking) {
+                    $booking->update([
+                        'status'               => BookingStatus::ACCEPTED->value,
+                        'accepted_at'          => now(),
+                        'buffer_after_minutes' => $bufferAfterMinutes,
+
+                        'final_price' => round((float) $booking->estimated_price, 2),
+                    ]);
+                    $booking->deposit_deadline_at = $this->deadlines->depositDeadline($booking);
+                    $booking->save();
+                }
+            } elseif ($action === 'reject') {
+                Booking::where('event_id', $triggerBooking->event_id)
+                    ->where('package_id', $triggerBooking->package_id)
+                    ->update([
+                        'status'      => BookingStatus::REJECTED->value,
+                        'rejected_at' => now(),
+                    ]);
+            }
+
+            $this->statusResolver->resolveAndPersist($triggerBooking->event);
+        });
+
+        $freshBookings = Booking::where('event_id', $triggerBooking->event_id)
+            ->where('package_id', $triggerBooking->package_id)
+            ->with(['service', 'customer', 'provider', 'event.city.governorate'])
+            ->get();
+
+        foreach ($freshBookings as $booking) {
+            match ($action) {
+                'accept' => $this->notifier->dispatch(new BookingAcceptedNotification($booking)),
+                'reject' => $this->notifier->dispatch(new BookingRejectedNotification($booking)),
+                default  => null,
+            };
+        }
     }
 
     public function calculateEstimatedPrice(Service $service, array $data): float
@@ -168,7 +241,6 @@ class BookingService
         ?string $startTime = null,
         ?int $duration = null
     ): array {
-
         if ($startTime === null) {
             $isDateAvailable = $this->availability->isDateAvailable($service, $bookingDate);
 
@@ -181,7 +253,6 @@ class BookingService
                 'is_available' => true,
             ];
         }
-
 
         $this->assertAvailable(
             service: $service,
@@ -196,6 +267,15 @@ class BookingService
         ];
     }
 
+    /**
+     * @throws BookingBelongsToPackageException
+     */
+    private function assertNotPartOfPackage(Booking $booking): void
+    {
+        if ($booking->package_id !== null) {
+            throw new BookingBelongsToPackageException($booking->id, $booking->package_id);
+        }
+    }
 
     private function assertAvailable(
         Service $service,

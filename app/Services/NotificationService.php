@@ -21,7 +21,10 @@ class NotificationService
 
     public function getNotifications($user)
     {
-        return $user->notifications;
+        return $user->notifications()
+            ->whereNull('deleted_at')
+            ->latest()
+            ->get();
     }
 
     public function readWithSubject(Notification $notification)

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\ProviderPayoutStatus;
 use App\Models\Payment;
 use App\Models\ProviderPayout;
+use App\Models\Refund;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
@@ -12,7 +13,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 class PaymentQueryService
 {
 
-    public function forCustomer(User $customer, array $filters = [], int $perPage = 15): LengthAwarePaginator
+    public function forCustomer(User $customer, array $filters = [], int $perPage = 1500): LengthAwarePaginator
     {
         return Payment::filter($filters)
             ->whereHas('event', fn ($q) => $q->where('customer_id', $customer->id))
@@ -22,7 +23,7 @@ class PaymentQueryService
     }
 
 
-    public function forProvider(User $provider, array $filters = [], int $perPage = 15): LengthAwarePaginator
+    public function forProvider(User $provider, array $filters = [], int $perPage = 1500): LengthAwarePaginator
     {
         return ProviderPayout::filter($filters)
             ->where('provider_id', $provider->id)
@@ -33,7 +34,7 @@ class PaymentQueryService
 
 
 
-    public function allPayments(array $filters = [], int $perPage = 15): LengthAwarePaginator
+    public function allPayments(array $filters = [], int $perPage = 1500): LengthAwarePaginator
     {
         return Payment::filter($filters)
             ->with(['event.customer', 'booking.service'])
@@ -42,7 +43,7 @@ class PaymentQueryService
     }
 
 
-    public function allPayouts(array $filters = [], int $perPage = 15): LengthAwarePaginator
+    public function allPayouts(array $filters = [], int $perPage = 1500): LengthAwarePaginator
     {
         return ProviderPayout::filter($filters)
             ->with(['provider', 'booking.service', 'payment'])
@@ -63,5 +64,27 @@ class PaymentQueryService
             ])->sum('amount'),
             'on_hold'          => (float) $payouts->where('status', ProviderPayoutStatus::ON_HOLD->value)->sum('amount'),
         ];
+    }
+
+
+
+    public function refundsForCustomer(User $customer, array $filters = [], int $perPage = 1500): LengthAwarePaginator
+    {
+        return Refund::filter($filters)
+            ->whereHas('payment.event', fn ($q) => $q->where('customer_id', $customer->id))
+            ->with(['payment.event', 'payment.booking.service'])
+            ->latest()
+            ->paginate($perPage);
+    }
+
+
+
+
+    public function allRefunds(array $filters = [], int $perPage = 1500): LengthAwarePaginator
+    {
+        return Refund::filter($filters)
+            ->with(['payment.event.customer', 'payment.booking.service'])
+            ->latest()
+            ->paginate($perPage);
     }
 }
