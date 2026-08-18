@@ -267,6 +267,11 @@ class BookingModificationService
 
         $modification->update(['status' => BookingModificationStatus::APPROVED->value]);
 
+        BookingModification::where('booking_id', $booking->id)
+            ->where('id', '!=', $modification->id)
+            ->where('status', BookingModificationStatus::PENDING->value)
+            ->update(['status' => BookingModificationStatus::EXPIRED->value]);
+
         Log::info('Booking modification approved and applied', [
             'booking_id'      => $booking->id,
             'modification_id' => $modification->id,
