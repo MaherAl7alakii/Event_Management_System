@@ -14,7 +14,6 @@ use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-
 class BookingCancellationService
 {
     private const NO_REFUND_THRESHOLD_HOURS = 72;
@@ -24,40 +23,62 @@ class BookingCancellationService
         private readonly ProviderPayoutService $payouts,
         private readonly LedgerService $ledger,
         private readonly BookingRefundAllocator $refundAllocator,
+//         private readonly NotificationDispatcher $notifier, // (في حال قمت بتفعيل الإشعارات)
     ) {
     }
-
 
     public function cancel(Booking $booking, CancelledBy $cancelledBy, ?string $reason = null): Booking
     {
         $this->assertCancellable($booking);
 
         return DB::transaction(function () use ($booking, $cancelledBy, $reason) {
-            $locked = Booking::lockForUpdate()->findOrFail($booking->id);
 
-            $this->assertCancellable($locked);
 
-            match ($cancelledBy) {
-                CancelledBy::PROVIDER => $this->handleProviderCancellation($locked),
-                CancelledBy::CUSTOMER => $this->handleCustomerCancellation($locked),
-            };
+            if ($booking->package_id !== null) {
 
-            $locked->update([
-                'status'       => BookingStatus::CANCELLED->value,
-                'cancelled_at' => now(),
-            ]);
+                $bookingsToCancel = Booking::where('event_id', $booking->event_id)
+                    ->where('package_id', $booking->package_id)
+                    ->whereNotIn('status', [
+                        BookingStatus::COMPLETED->value,
+                        BookingStatus::CANCELLED->value,
+                        BookingStatus::REJECTED->value,
+                        BookingStatus::EXPIRED->value,
+                    ])
+                    ->lockForUpdate()
+                    ->get();
+            } else {
 
-            $this->statusResolver->resolveAndPersist($locked->event);
+                $bookingsToCancel = collect([Booking::lockForUpdate()->findOrFail($booking->id)]);
+            }
 
-            Log::info('Booking cancelled', [
-                'booking_id'   => $locked->id,
-                'cancelled_by' => $cancelledBy->value,
-                'reason'       => $reason,
-            ]);
+            foreach ($bookingsToCancel as $lockedBooking) {
 
-            //---- Notification ----
+                match ($cancelledBy) {
+                    CancelledBy::PROVIDER => $this->handleProviderCancellation($lockedBooking),
+                    CancelledBy::CUSTOMER => $this->handleCustomerCancellation($lockedBooking),
+                };
 
-            return $locked->fresh();
+                $lockedBooking->update([
+                    'status'       => BookingStatus::CANCELLED->value,
+                    'cancelled_at' => now(),
+                ]);
+
+                Log::info('Booking cancelled', [
+                    'booking_id'   => $lockedBooking->id,
+                    'package_id'   => $lockedBooking->package_id,
+                    'cancelled_by' => $cancelledBy->value,
+                    'reason'       => $reason,
+                ]);
+
+                //---- Notification ----
+                // $this->notifier->dispatch(new BookingCancelledNotification($lockedBooking, $cancelledBy, $reason));
+            }
+
+
+            $this->statusResolver->resolveAndPersist($booking->event);
+
+
+            return $booking->fresh();
         });
     }
 
@@ -77,8 +98,6 @@ class BookingCancellationService
         }
     }
 
-
-
     private function handleProviderCancellation(Booking $booking): void
     {
         $this->payouts->cancelScheduledPayouts($booking);
@@ -89,8 +108,6 @@ class BookingCancellationService
             $this->refundAllocator->refundBookingShare($booking, $netPaid, 'provider_cancelled_booking');
         }
     }
-
-
 
     private function handleCustomerCancellation(Booking $booking): void
     {
@@ -120,8 +137,6 @@ class BookingCancellationService
         $this->refundAllocator->refundBookingShare($booking, $extraPaid, 'customer_cancelled_booking_partial_refund');
     }
 
-
-
     private function reconcilePayout(Booking $booking, float $amount, ProviderPayoutReason $reason): void
     {
         $payment = $this->latestContributingPayment($booking);
@@ -133,7 +148,6 @@ class BookingCancellationService
             'release_at' => now()->addHours(24),
         ]);
     }
-
 
     private function latestContributingPayment(Booking $booking): ?Payment
     {
