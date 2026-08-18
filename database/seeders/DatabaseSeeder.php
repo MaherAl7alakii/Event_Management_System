@@ -64,7 +64,7 @@ StripeAccountSeeder::class,
     ProviderPayoutSeeder::class,
 
     BookingComplaintSeeder::class,
-    
+
 
     BookingPriceProposalSeeder::class,
 ServiceProviderGallerySeeder::class,
@@ -76,6 +76,7 @@ ServiceProviderGallerySeeder::class,
     NotificationSeeder::class,
        MessageSeeder::class,
            EventTypeCategoryBudgetSeeder::class,
+           DemoDataSeeder::class
 ]);
     }
 }
