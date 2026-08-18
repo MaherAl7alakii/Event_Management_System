@@ -3,47 +3,170 @@
 namespace Database\Seeders;
 
 use App\Models\ServiceProvider;
-use App\Models\WorkingHour;
 use Illuminate\Database\Seeder;
 
 class WorkingHoursSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        $providerIds = ServiceProvider::pluck('id');
+        /*
+        |--------------------------------------------------------------------------
+        | day_of_week
+        |--------------------------------------------------------------------------
+        | 0 = Sunday
+        | 1 = Monday
+        | 2 = Tuesday
+        | 3 = Wednesday
+        | 4 = Thursday
+        | 5 = Friday
+        | 6 = Saturday
+        |--------------------------------------------------------------------------
+        */
 
-        if ($providerIds->isEmpty()) {
-            return;
-        }
+        $workingHours = [
 
-        $daysOfWeek = range(0, 6);
-        $rows = [];
-        $now = now();
+            // Ahmad Khalil - Photographer
+            'ahmad.khalil@gmail.com' => [
+                0 => ['09:00', '18:00'],
+                1 => ['09:00', '18:00'],
+                2 => ['09:00', '18:00'],
+                3 => ['09:00', '18:00'],
+                4 => ['09:00', '18:00'],
+                6 => ['10:00', '20:00'],
+            ],
 
-        foreach ($providerIds as $providerId) {
-            foreach ($daysOfWeek as $day) {
-                $isFriday = ($day === 5);
+            // Lina Hassan - Makeup Artist
+            'lina.hassan@gmail.com' => [
+                0 => ['10:00', '19:00'],
+                1 => ['10:00', '19:00'],
+                2 => ['10:00', '19:00'],
+                3 => ['10:00', '19:00'],
+                4 => ['10:00', '19:00'],
+                5 => ['12:00', '20:00'],
+                6 => ['10:00', '19:00'],
+            ],
 
-                $rows[] = [
-                    'service_provider_id' => $providerId,
-                    'day_of_week'          => $day,
-                    'is_active'            => ! $isFriday,
-                    'start_time'           => $isFriday ? '00:00:00' : '09:00:00',
-                    'end_time'             => $isFriday ? '00:00:00' : '23:00:00',
-                    'created_at'           => $now,
-                    'updated_at'           => $now,
-                ];
+            // Omar Saleh - Decoration
+            'omar.saleh@gmail.com' => [
+                0 => ['09:00', '18:00'],
+                1 => ['09:00', '18:00'],
+                2 => ['09:00', '18:00'],
+                3 => ['09:00', '18:00'],
+                4 => ['09:00', '18:00'],
+                6 => ['09:00', '17:00'],
+            ],
+
+            // Sara Ahmad - Venue
+            'sara.ahmad@gmail.com' => [
+                0 => ['09:00', '22:00'],
+                1 => ['09:00', '22:00'],
+                2 => ['09:00', '22:00'],
+                3 => ['09:00', '22:00'],
+                4 => ['09:00', '22:00'],
+                5 => ['10:00', '23:00'],
+                6 => ['09:00', '23:00'],
+            ],
+
+            // Khaled Nasser - Music & DJ
+            'khaled.nasser@gmail.com' => [
+                0 => ['16:00', '23:00'],
+                1 => ['16:00', '23:00'],
+                2 => ['16:00', '23:00'],
+                3 => ['16:00', '23:00'],
+                4 => ['16:00', '23:00'],
+                5 => ['16:00', '00:00'],
+                6 => ['16:00', '00:00'],
+            ],
+
+            // Maya Ibrahim - Desserts
+            'maya.ibrahim@gmail.com' => [
+                0 => ['09:00', '18:00'],
+                1 => ['09:00', '18:00'],
+                2 => ['09:00', '18:00'],
+                3 => ['09:00', '18:00'],
+                4 => ['09:00', '18:00'],
+                5 => ['10:00', '18:00'],
+                6 => ['09:00', '17:00'],
+            ],
+
+            // Yazan Mahmoud - Catering
+            'yazan.mahmoud@gmail.com' => [
+                0 => ['07:00', '17:00'],
+                1 => ['07:00', '17:00'],
+                2 => ['07:00', '17:00'],
+                3 => ['07:00', '17:00'],
+                4 => ['07:00', '17:00'],
+                5 => ['07:00', '18:00'],
+                6 => ['07:00', '18:00'],
+            ],
+
+            // Rana Samir - Car Rental
+            'rana.samir@gmail.com' => [
+                0 => ['08:00', '20:00'],
+                1 => ['08:00', '20:00'],
+                2 => ['08:00', '20:00'],
+                3 => ['08:00', '20:00'],
+                4 => ['08:00', '20:00'],
+                5 => ['08:00', '22:00'],
+                6 => ['08:00', '22:00'],
+            ],
+
+            // Tarek Ibrahim - Photographer + Music & DJ
+            'tarek.ibrahim@gmail.com' => [
+                0 => ['12:00', '22:00'],
+                1 => ['12:00', '22:00'],
+                2 => ['12:00', '22:00'],
+                3 => ['12:00', '22:00'],
+                4 => ['12:00', '22:00'],
+                5 => ['14:00', '00:00'],
+                6 => ['14:00', '00:00'],
+            ],
+
+            // Nour Ali - Decoration + Venue
+            'nour.ali@gmail.com' => [
+                0 => ['09:00', '21:00'],
+                1 => ['09:00', '21:00'],
+                2 => ['09:00', '21:00'],
+                3 => ['09:00', '21:00'],
+                4 => ['09:00', '21:00'],
+                5 => ['10:00', '22:00'],
+                6 => ['10:00', '22:00'],
+            ],
+        ];
+
+        foreach ($workingHours as $email => $days) {
+
+            $provider = ServiceProvider::whereHas('user', function ($query) use ($email) {
+                $query->where('email', $email);
+            })->first();
+
+            if (!$provider) {
+                continue;
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Remove old working hours
+            |--------------------------------------------------------------------------
+            */
+
+            $provider->workingHours()->delete();
+
+            /*
+            |--------------------------------------------------------------------------
+            | Create working hours
+            |--------------------------------------------------------------------------
+            */
+
+            foreach ($days as $dayOfWeek => [$startTime, $endTime]) {
+
+                $provider->workingHours()->create([
+                    'day_of_week' => $dayOfWeek,
+                    'start_time' => $startTime,
+                    'end_time' => $endTime,
+                    'is_active' => true,
+                ]);
             }
         }
-
-
-        WorkingHour::upsert(
-            $rows,
-            ['service_provider_id', 'day_of_week'],
-            ['is_active', 'start_time', 'end_time', 'updated_at']
-        );
     }
 }

@@ -2,59 +2,64 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\EventType;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
 class EventTypeSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        $eventTypes = [
+        $types = [
             [
-                'ar'   => 'حفل زفاف',
-                'en'   => 'Wedding Party'
+                'en' => 'Wedding',
+                'ar' => 'Wedding',
             ],
             [
-                'ar'   => 'حفل تخرج',
-                'en'   => 'Graduation Ceremony'
+                'en' => 'Engagement',
+                'ar' => 'Engagement',
             ],
             [
-                'ar'   => 'عيد ميلاد',
-                'en'   => 'Birthday Party'
+                'en' => 'Birthday',
+                'ar' => 'Birthday',
             ],
             [
-                'ar'   => 'حفل استقبال مولود',
-                'en'   => 'Baby Shower'
+                'en' => 'Graduation',
+                'ar' => 'Graduation',
             ],
             [
-                'ar'   => 'أخرى',
-                'en'   => 'Other'
+                'en' => 'Corporate Event',
+                'ar' => 'Corporate Event',
             ],
-
+            [
+                'en' => 'Private Party',
+                'ar' => 'Private Party',
+            ],
+            [
+                'en' => 'Baby Shower',
+                'ar' => 'Baby Shower',
+            ],
+            [
+                'en' => 'Anniversary',
+                'ar' => 'Anniversary',
+            ],
         ];
 
-        foreach ($eventTypes as $type) {
-            $eventTypeId = DB::table('event_types')->insertGetId([
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+        foreach ($types as $type) {
 
+            $eventType = EventType::create();
 
             DB::table('event_type_translations')->insert([
                 [
-                    'event_type_id' => $eventTypeId,
-                    'locale'        => 'ar',
-                    'name'          => $type['ar'],
+                    'event_type_id' => $eventType->id,
+                    'locale' => 'en',
+                    'name' => $type['en'],
                 ],
                 [
-                    'event_type_id' => $eventTypeId,
-                    'locale'        => 'en',
-                    'name'          => $type['en'],
-                ]
+                    'event_type_id' => $eventType->id,
+                    'locale' => 'ar',
+                    'name' => $type['ar'],
+                ],
             ]);
         }
     }

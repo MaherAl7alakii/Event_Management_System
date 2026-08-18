@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f824be8ac330b1ae3e30419036670cd7",
+    "content-hash": "a74ab6a6d68a8c377a42bc38f7a3e67a",
     "packages": [
         {
             "name": "astrotomic/laravel-translatable",
@@ -7878,16 +7878,16 @@
         },
         {
             "name": "stripe/stripe-php",
-            "version": "v21.0.0",
+            "version": "v21.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/stripe/stripe-php.git",
-                "reference": "0498d20d0c33490c38df956dd7cef49b3a2ad6f0"
+                "reference": "edf8118f0b96d69f06f372da9168d613d1aed072"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/stripe/stripe-php/zipball/0498d20d0c33490c38df956dd7cef49b3a2ad6f0",
-                "reference": "0498d20d0c33490c38df956dd7cef49b3a2ad6f0",
+                "url": "https://api.github.com/repos/stripe/stripe-php/zipball/edf8118f0b96d69f06f372da9168d613d1aed072",
+                "reference": "edf8118f0b96d69f06f372da9168d613d1aed072",
                 "shasum": ""
             },
             "require": {
@@ -7909,7 +7909,8 @@
             },
             "autoload": {
                 "files": [
-                    "lib/version_check.php"
+                    "lib/version_check.php",
+                    "lib/agent_plugin_hint.php"
                 ],
                 "psr-4": {
                     "Stripe\\": "lib/"
@@ -7934,9 +7935,9 @@
             ],
             "support": {
                 "issues": "https://github.com/stripe/stripe-php/issues",
-                "source": "https://github.com/stripe/stripe-php/tree/v21.0.0"
+                "source": "https://github.com/stripe/stripe-php/tree/v21.2.0"
             },
-            "time": "2026-07-16T00:34:23+00:00"
+            "time": "2026-08-10T22:11:35+00:00"
         },
         {
             "name": "symfony/cache",
@@ -15680,12 +15681,12 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {},
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
         "php": "^8.2"
     },
-    "platform-dev": [],
+    "platform-dev": {},
     "plugin-api-version": "2.6.0"
 }

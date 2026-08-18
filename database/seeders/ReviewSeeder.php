@@ -2,87 +2,102 @@
 
 namespace Database\Seeders;
 
+use App\Models\Review;
+use App\Models\ServiceProvider;
+use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 
 class ReviewSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-       
-        $userIds = DB::table('users')
-            ->pluck('id')
-            ->toArray();
+        Review::query()->delete();
 
-        
-        $providerIds = DB::table('service_providers')
-            ->pluck('id')
-            ->toArray();
+        $reviews = [
 
-        if (empty($userIds) || empty($providerIds)) {
-            return;
-        }
+            [
+                'customer' => 'lama.omar@gmail.com',
+                'provider' => 'ahmad.khalil@gmail.com',
+                'rating' => 5,
+                'comment' =>
+                    'Excellent photography service. The photos were professional and beautifully edited.',
+            ],
 
-        $comments = [
-            'خدمة ممتازة والتعامل كان رائع جداً.',
-            'تجربة جميلة جداً وأنصح بالتعامل معهم.',
-            'الخدمة كانت جيدة والتنظيم ممتاز.',
-            'تعامل احترافي وسرعة في تنفيذ الطلب.',
-            'النتيجة كانت أفضل مما توقعت.',
-            'خدمة جيدة جداً والأسعار مناسبة.',
-            'التجربة كانت رائعة من البداية حتى النهاية.',
-            'المزود كان متعاوناً ومحترفاً جداً.',
-            'الخدمة ممتازة ولكن أتمنى تحسين وقت الاستجابة.',
-            'تجربة جيدة وسأتعامل معهم مرة أخرى.',
+            [
+                'customer' => 'mohammad.ali@gmail.com',
+                'provider' => 'lina.hassan@gmail.com',
+                'rating' => 5,
+                'comment' =>
+                    'Very professional makeup service and great attention to detail.',
+            ],
+
+            [
+                'customer' => 'sara.hassan@gmail.com',
+                'provider' => 'omar.saleh@gmail.com',
+                'rating' => 4,
+                'comment' =>
+                    'Beautiful decoration and good coordination with the event requirements.',
+            ],
+
+            [
+                'customer' => 'karim.saleh@gmail.com',
+                'provider' => 'khaled.nasser@gmail.com',
+                'rating' => 5,
+                'comment' =>
+                    'Great DJ and excellent sound quality throughout the event.',
+            ],
+
+            [
+                'customer' => 'dima.ahmad@gmail.com',
+                'provider' => 'maya.ibrahim@gmail.com',
+                'rating' => 5,
+                'comment' =>
+                    'The desserts were delicious and beautifully presented.',
+            ],
+
+            [
+                'customer' => 'hussein.nasser@gmail.com',
+                'provider' => 'yazan.mahmoud@gmail.com',
+                'rating' => 4,
+                'comment' =>
+                    'Good catering service with a nice variety of food.',
+            ],
+
+            [
+                'customer' => 'razan.samir@gmail.com',
+                'provider' => 'nour.ali@gmail.com',
+                'rating' => 4,
+                'comment' =>
+                    'Nice decoration and good communication with the provider.',
+            ],
+
+            [
+                'customer' => 'tamer.ibrahim@gmail.com',
+                'provider' => 'tarek.ibrahim@gmail.com',
+                'rating' => 5,
+                'comment' =>
+                    'Professional service and excellent event coverage.',
+            ],
         ];
 
-       
-        $existingReviews = [];
+        foreach ($reviews as $data) {
 
-    
-        foreach ($providerIds as $providerId) {
+            $customer = User::where('email', $data['customer'])->first();
 
-            $numberOfReviews = rand(3, 8);
+            $provider = ServiceProvider::whereHas('user', function ($query) use ($data) {
+                $query->where('email', $data['provider']);
+            })->first();
 
-            /*
-             * نخلط المستخدمين حتى نختار Users مختلفين
-             */
-            $selectedUsers = collect($userIds)
-                ->shuffle()
-                ->take(min($numberOfReviews, count($userIds)));
-
-            foreach ($selectedUsers as $userId) {
-
-                $uniqueKey = $userId . '-' . $providerId;
-
-                
-                if (isset($existingReviews[$uniqueKey])) {
-                    continue;
-                }
-
-                $existingReviews[$uniqueKey] = true;
-
-              
-                $rating = collect([
-                    5, 5, 5,
-                    4, 4, 4,
-                    3, 3,
-                    2,
-                    1,
-                ])->random();
-
-                DB::table('reviews')->insert([
-                    'user_id'            => $userId,
-                    'service_provider_id' => $providerId,
-                    'rating'             => $rating,
-                    'comment'            => collect($comments)->random(),
-                    'created_at'         => now(),
-                    'updated_at'         => now(),
-                ]);
+            if (!$customer || !$provider) {
+                continue;
             }
+
+            Review::create([
+                'user_id' => $customer->id,
+                'service_provider_id' => $provider->id,
+                'rating' => $data['rating'],
+                'comment' => $data['comment'],
+            ]);
         }
     }
 }

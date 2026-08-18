@@ -80,8 +80,7 @@ class ServiceProviderService
         return DB::transaction(function () use ($provider, $data) {
 
             if (isset($data['first_name']) || isset($data['last_name'])) {
-
-                $user = User::findOrFail($userId);
+            $user = User::findOrFail($provider->user_id);
 
                 $currentName = explode(' ', trim($user->name), 2);
 
